@@ -1,0 +1,28 @@
+{% extends "client/base.html" %}
+
+{% block title %}
+{{ name }}
+{% endblock %}
+
+{% block styles %}
+{{super()}}
+<link rel="stylesheet" href="{{url_for('.static', filename='css/home/book-card.css')}}">
+
+{% endblock %}
+
+{% block content %}
+<input type="hidden" value="{{ slug }}" id="slug">
+<div class="row" id="products">
+
+
+</div>
+<div class="row">
+    <nav id="pagination" style="padding: 20px;">
+    </nav>
+</div>
+{% endblock %}
+{% block script %}
+<script src="{{url_for('.static', filename='js/base.js')}}"></script>
+<script src="{{url_for('.static', filename='js/main-event.js')}}"></script>
+<script src="{{url_for('.static', filename='js/categoryPage.js')}}"></script>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends "client/base.html" %}
+
+{% block title %}
+{{ book.title }}
+{% endblock %}
+
+{% block styles %}
+{{super()}}
+<link rel="stylesheet" href="{{url_for('.static', filename='css/home/book-card.css')}}">
+<link rel="stylesheet" href="{{url_for('.static', filename='css/home/detail.css')}}">
+
+{% endblock %}
+
+{% block content %}
+<input type="hidden" id="id" value="{{ book.id }}">
+<div class="row">
+    <div class="col-md-4" id="image">
+        
+    </div>
+    <div class="col-md-8">
+        <div class="info">
+            <h1 class="h1 mb-2" id="title"></h1>
+            <span id="writers">
+                
+            </span>
+            <span>
+                <h3 style="color: red;">Price: <span class="price"></span></h3>
+            </span>
+            <div id='avaiable'>
+                <i class="fa fa-check-circle mr-1 text-accent text-fa "></i>
+                <span class="text-accent">Available</span><br>
+                <button type="button" class="btn btn-danger" id="add-cart"><i class="fa fa-shopping-cart"
+                        aria-hidden="true"></i> ADD TO CART</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="label">
+    <h2>Description</h2>
+    <div class="no-change">
+        <p id="description"></p>
+    </div>
+    <h2>Product Details</h2>
+    <div class="no-change">
+        <div class="row detail"><b>Price:&nbsp;</b> <span id="price-detail"></span></div>
+        <div class="row detail"><b>Publisher:&nbsp;</b> <span id="publisher"></span></div>
+        <div class="row detail"><b>Publish Date:&nbsp;</b> <span id="publish-date"></span></div>
+        <div class="row detail"><b>Pages:&nbsp;</b> <span id="pages"></span></div>
+        <div class="row detail"><b>Type:&nbsp;</b> <span id="type"></span></div>
+        <div class="row detail"><b>Quantity:&nbsp;</b> <span id="quantity"></span></div>
+    </div>
+    <h2>Comments</h2>
+    <form>
+        <textarea type="text" class="input" placeholder="Write a comment" name="content" id="content"></textarea>
+        <button class='primaryContained float-right' type="submit">Add Comment</button>
+    </form>
+    <div style="padding-top: 40px;">
+        <div class="comment-element">
+            <div class="comment-box">
+                <div class="comment-head">
+                    <h6 class="comment-name by-author">Agustin Ortiz</h6>
+                    <span>hace 20 minutos</span>
+                </div>
+            </div>
+            <div class="comment-content">
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Velit omnis animi et iure
+                laudantium vitae, praesentium optio, sapiente distinctio illo?
+            </div>
+        </div>
+        <div class="comment-element">
+            <div class="comment-box">
+                <div class="comment-head">
+                    <h6 class="comment-name by-author">Agustin Ortiz</h6>
+                    <span>hace 20 minutos</span>
+                </div>
+            </div>
+            <div class="comment-content">
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Velit omnis animi et iure
+                laudantium vitae, praesentium optio, sapiente distinctio illo?
+            </div>
+        </div>
+        <div class="comment-element">
+            <div class="comment-box">
+                <div class="comment-head">
+                    <h6 class="comment-name by-author">Agustin Ortiz</h6>
+                    <span>hace 20 minutos</span>
+                </div>
+            </div>
+            <div class="comment-content">
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Velit omnis animi et iure
+                laudantium vitae, praesentium optio, sapiente distinctio illo?
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script src="{{url_for('.static', filename='js/base.js')}}"></script>
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            url: '/book/get-detail-book',
+            dataType: 'json',
+            method: 'POST',
+            data: {
+                'id': $('#id').val()
+            },
+            success: function (aData) {
+                var sWriter = '';
+                if (aData.writer.length > 1) {
+                    for (j in aData.writer) {
+                        if (j == aData.writer.length - 1)
+                            sWriter += `<a href="/writer/` + aData.writer[j].slug + `">` + aData.writer[j].name + `</a>`;
+                        else
+                            sWriter += `<a href="/writer/` + aData.writer[j].slug + `">` + aData.writer[j].name + `</a>` + `, `;
+                    }
+                } else {
+                    sWriter = `<a href="/writer/` + aData.writer[0].slug + `">` + aData.writer[0].name + `</a>`;
+                }
+                $('#image').html(`<img src="../static/images/books/` + aData.image + `" height="auto" width="250" alt="">`);
+                $('#title').html(aData.title);
+                $('#writers').html(sWriter + ` (Author)`);
+                $('.price').html(`$` + aData.price);
+                $('#price-detail').html(`$` + aData.price);
+                $('#description').html(aData.info);
+                $('#publisher').html(aData.publisher);
+                $('#publish-date').html(aData.publish_date);
+                $('#pages').html(aData.pages);
+                $('#type').html(aData.category);
+                $('#quantity').html(aData.number);
+            },
+            error: function () {
+                alert('error');
+            },
+            beforeSend: function () {
+                $('#loading').css('display', 'block');
+            },
+            complete: function () {
+                $('#loading').css('display', 'none');
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,10 @@
+#loading {
+  display: none;
+  height: 100px;
+  width: 100px;
+  position: absolute;
+  left: 50%;
+  top: 25%;
+  z-index: 1000;
+  color: #0065a3;
+}
