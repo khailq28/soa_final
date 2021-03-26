@@ -5,7 +5,7 @@ $('#logout').click(function () {
         dataType: 'json',
         success: function (aData) {
             if (aData.logout) {
-                window.location.replace('http://127.0.0.1:5000/');
+                location.reload();
             }
         },
         beforeSend: function () {
