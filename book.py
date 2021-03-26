@@ -4,6 +4,7 @@ from datetime import datetime
 from models import Books, books_writers, Writers, Categories
 from flask_sqlalchemy import SQLAlchemy
 from init import db
+from flask_login import current_user
 from sqlalchemy import or_
 
 book = Blueprint('book', __name__, static_folder='static', template_folder='templates')
@@ -11,7 +12,7 @@ book = Blueprint('book', __name__, static_folder='static', template_folder='temp
 @book.route('/<string:slug>')
 def index(slug):
    oBook = Books.query.with_entities(Books.title, Books.id).filter(Books.slug == slug).first()
-   return render_template('client/bookDetail.html', slug=slug, book=oBook)
+   return render_template('client/bookDetail.html', slug=slug, book=oBook, user=current_user)
 
 @book.route('/get-all-book', methods=['POST'])
 def getAllBook():
@@ -56,7 +57,7 @@ def getAllBook():
         current_page = aBook.page,
         prev_num = aBook.prev_num,
         next_num = aBook.next_num
-    )
+    ), 200
 
 @book.route('/get-book-by-category', methods=['POST'])
 def getBookByCategory():

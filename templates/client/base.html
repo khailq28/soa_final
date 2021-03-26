@@ -63,14 +63,7 @@
                         Contact
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a href="/login" type="button"
-                        class="btn btn-outline-info btn-md btn-rounded btn-navbar waves-effect waves-light">Sign in</a>
-                </li>
-                <li class="nav-item pl-2 mb-2 mb-md-0">
-                    <a href="#!" type="button"
-                        class="btn btn-outline-info btn-md btn-rounded btn-navbar waves-effect waves-light">Sign up</a>
-                </li>
+                {% if user.id: %}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink-333" data-toggle="dropdown"
                         aria-haspopup="true" aria-expanded="false">
@@ -80,8 +73,16 @@
                         <a class="dropdown-item" href="#!">Action</a>
                         <a class="dropdown-item" href="#!">Another action</a>
                         <a class="dropdown-item" href="#!">Something else here</a>
+                        <a class="dropdown-item" href="javascript:void(0)" id="logout">Logout</a>
                     </div>
                 </li>
+                {% else: %}
+                <li class="nav-item">
+                    <a href="/signin" type="button"
+                        class="btn btn-outline-info btn-md btn-rounded btn-navbar waves-effect waves-light">Sign in</a>
+                </li>
+                {% endif %}
+                
             </ul>
 
         </div>
@@ -122,6 +123,7 @@
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
     <script src="{{url_for('.static', filename='js/search-event.js')}}"></script>
+    <script src="{{url_for('.static', filename='js/signout.js')}}"></script>
 
     <footer class="bg-light text-center text-lg-start ">
         <!-- Copyright -->

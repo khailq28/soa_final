@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+
+<head>
+    <title>Forgot password</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="{{url_for('.static', filename='css/home/form-login.css')}}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div style="margin: auto;">
+        <form class="form" method="" action="">
+            <h2 class="form_title title">Create Account</h2>
+            <input class="form__input" type="text" placeholder="Lastname" id="lastname" name="lastname">
+            <input class="form__input" type="text" placeholder="Firstname" id="firstname" name="firstname">
+            <input class="form__input" type="text" placeholder="Username" id="username" name="username">
+            <input class="form__input" type="email" placeholder="Email" id="email" name="email">
+            <input class="form__input" type="password" placeholder="Password" id="password" name="password">
+            <input class="form__input" type="password" placeholder="Confirm Password" id="confirm" name="confirm">
+            <input class="form__input" type="text" placeholder="Address" id="address" name="address">
+            <input class="form__input" type="text" placeholder="Phone" id="phone" name="phone">
+            <button class="form__button button submit">SIGN UP</button>
+        </form>
+    </div>
+    <script src="{{url_for('.static', filename='js/form-login.js')}}"></script>
+</body>
+
+</html>

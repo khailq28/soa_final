@@ -50,10 +50,12 @@
         <div class="row detail"><b>Quantity:&nbsp;</b> <span id="quantity"></span></div>
     </div>
     <h2>Comments</h2>
+    {% if user.id: %}
     <form>
         <textarea type="text" class="input" placeholder="Write a comment" name="content" id="content"></textarea>
         <button class='primaryContained float-right' type="submit">Add Comment</button>
     </form>
+    {% endif %}
     <div style="padding-top: 40px;">
         <div class="comment-element">
             <div class="comment-box">

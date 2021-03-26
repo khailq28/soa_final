@@ -1,6 +1,7 @@
 from init import db
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import JSON
+from flask_login import UserMixin
 
 class Groups(db.Model):
     name = db.Column(db.String(100), primary_key=True)
@@ -12,7 +13,7 @@ class Groups(db.Model):
         self.description = description
         self.created = created
 
-class Users(db.Model):
+class Users(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     group_id = db.Column(db.String(100), default='user')
     username = db.Column(db.String(50), unique=True)
@@ -22,6 +23,7 @@ class Users(db.Model):
     lastname = db.Column(db.String(50), nullable=False)
     address = db.Column(db.String(255), nullable=False)
     phone_number = db.Column(db.String(13), nullable=False)
+    money = db.Column(db.String(255), nullable=False, default='0')
     created = db.Column(db.String(255), nullable=False)
     modified = db.Column(db.String(255), nullable=False)
 

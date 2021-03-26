@@ -4,6 +4,7 @@ from datetime import datetime
 from models import Writers
 from flask_sqlalchemy import SQLAlchemy
 from init import db
+from flask_login import current_user
 from sqlalchemy.sql import func
 
 writer = Blueprint('writer', __name__, static_folder='static', template_folder='templates')
@@ -11,7 +12,7 @@ writer = Blueprint('writer', __name__, static_folder='static', template_folder='
 @writer.route('/<string:slug>')
 def index(slug):
    oWriter = Writers.query.with_entities(Writers.name, Writers.id).filter(Writers.slug == slug).first()
-   return render_template('client/writerDetail.html', slug=slug, writer=oWriter)
+   return render_template('client/writerDetail.html', slug=slug, writer=oWriter, user=current_user)
 
 @writer.route('/get-random-writer', methods=['POST'])
 def getRandomWriter():
