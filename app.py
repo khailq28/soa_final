@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, url_for, redirect
 from models import *
 from admin import admin
 from category import category
@@ -7,7 +7,7 @@ from coupon import coupon
 from group import group
 from order import order
 from writer import writer
-from init import app, db
+from init import app, db, mail
 from datetime import datetime
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -18,6 +18,11 @@ from flask_jwt_extended import (
      jwt_required,
     get_jwt_identity, unset_jwt_cookies
 )
+
+from flask_mail import Message
+from itsdangerous import Serializer, TimedJSONWebSignatureSerializer 
+
+s = TimedJSONWebSignatureSerializer('Thisisasecret')
 
 app.register_blueprint(admin, url_prefix='/admin')
 app.register_blueprint(book, url_prefix='/book')
@@ -60,6 +65,9 @@ def signin():
          login = False,
          message = 'Invalid username or password'
       ), 200
+
+   if current_user.is_authenticated:
+      return redirect(url_for('index'))
    return render_template('client/signin.html')
 
 @app.route('/signup', methods=['POST'])
@@ -68,9 +76,15 @@ def signup():
    sFirstname = request.form['firstname']
    sUsername = request.form['username']
    sPassword = request.form['password']
+   sConfirm = request.form['confirm']
    sEmail = request.form['email']
    sAddress = request.form['address']
    sPhone = request.form['phone']
+   if sPassword == sConfirm:
+      return jsonify(
+         message = "validate"
+      ), 200
+
    if sLastname != '' and sFirstname != '' and sUsername != '' and sPassword != '' and sEmail != '' and sAddress != '' and sPhone != '':
       hashed_password = generate_password_hash(sPassword, method='sha256')
       
@@ -93,23 +107,60 @@ def signup():
 @app.route('/logout', methods=['POST'])
 @login_required
 def logout():
-    logout_user()
-    resp = jsonify({'logout': True})
-    # unset_jwt_cookies(resp)
-    return resp, 200
+   if current_user.is_authenticated:
+      logout_user()
+      resp = jsonify({'logout': True})
+      # unset_jwt_cookies(resp)
+      return resp, 200
 
 @app.route('/forgot', methods=['GET', 'POST'])
 def forgot():
+   if request.method == 'POST':
+      sEmail = request.form['email']
+      new_user = Users.query.with_entities(Users.id).filter(Users.email == sEmail).first()
+
+      token = s.dumps({'user_id' : new_user.id}).decode('utf-8')
+
+      msg = Message('Confirm Email', sender = 'a06204995@gmail.com', recipients = [sEmail])
+
+      link = url_for('reset_password', token=token, _external=True)
+
+      msg.body = 'If you don’t use this link within 1 hours, it will expire. To get a new password reset link, visit: {}'.format(link)
+      mail.send(msg)
+      return jsonify(
+         message = 'Check your email for a link to reset your password. If it doesn’t appear within a few minutes, check your spam folder.'
+      )
    return render_template('client/forgot.html')
 
-@app.route('/search')
-def searchPage():
-   return render_template('search.html')
+@app.route('/reset-password/<token>')
+def reset_password(token):
+   try:
+      id = s.loads(token)['user_id']
+   except SignatureExpired:
+      return '<h1>The token is expired!</h1>'
+   return render_template('client/reset_password.html', token=token)
 
-@app.route('/test')
-@login_required
-def test():
-   return 'sss'
+@app.route('/change-password', methods=['POST'])
+def change_password():
+   sPassword = request.form['password']
+   sConfirm = request.form['confirm']
+   token = request.form['token']
+   try:
+      id = s.loads(token)['user_id']
+   except SignatureExpired:
+      return '<h1>The token is expired!</h1>'
+   if sPassword != sConfirm:
+      return jsonify(
+         message = 'validate'
+      )
+   new_user = Users.query.\
+               filter(Users.id == id).\
+                  update(dict(password = generate_password_hash(sPassword, method='sha256')))
+   db.session.commit()
+   return jsonify(
+      message = 'Password is changed successfully'
+   )
 
+   
 if __name__ == '__main__':
     app.run()

@@ -12,85 +12,94 @@
 {% endblock %}
 
 {% block content %}
-<input type="hidden" id="id" value="{{ book.id }}">
-<div class="row">
-    <div class="col-md-4" id="image">
-        
-    </div>
-    <div class="col-md-8">
-        <div class="info">
-            <h1 class="h1 mb-2" id="title"></h1>
-            <span id="writers">
-                
-            </span>
-            <span>
-                <h3 style="color: red;">Price: <span class="price"></span></h3>
-            </span>
-            <div id='avaiable'>
-                <i class="fa fa-check-circle mr-1 text-accent text-fa "></i>
-                <span class="text-accent">Available</span><br>
-                <button type="button" class="btn btn-danger" id="add-cart"><i class="fa fa-shopping-cart"
-                        aria-hidden="true"></i> ADD TO CART</button>
-            </div>
-        </div>
-    </div>
+<div class="row" id="products">
+
 </div>
-<div class="label">
-    <h2>Description</h2>
-    <div class="no-change">
-        <p id="description"></p>
-    </div>
-    <h2>Product Details</h2>
-    <div class="no-change">
-        <div class="row detail"><b>Price:&nbsp;</b> <span id="price-detail"></span></div>
-        <div class="row detail"><b>Publisher:&nbsp;</b> <span id="publisher"></span></div>
-        <div class="row detail"><b>Publish Date:&nbsp;</b> <span id="publish-date"></span></div>
-        <div class="row detail"><b>Pages:&nbsp;</b> <span id="pages"></span></div>
-        <div class="row detail"><b>Type:&nbsp;</b> <span id="type"></span></div>
-        <div class="row detail"><b>Quantity:&nbsp;</b> <span id="quantity"></span></div>
-    </div>
-    <h2>Comments</h2>
-    {% if user.id: %}
-    <form>
-        <textarea type="text" class="input" placeholder="Write a comment" name="content" id="content"></textarea>
-        <button class='primaryContained float-right' type="submit">Add Comment</button>
-    </form>
-    {% endif %}
-    <div style="padding-top: 40px;">
-        <div class="comment-element">
-            <div class="comment-box">
-                <div class="comment-head">
-                    <h6 class="comment-name by-author">Agustin Ortiz</h6>
-                    <span>hace 20 minutos</span>
+<div class="row">
+    <nav id="pagination" style="padding: 20px; cursor: pointer;">
+    </nav>
+</div>
+<input type="hidden" id="id" value="{{ book.id }}">
+<div id="info">
+    <div class="row">
+        <div class="col-md-4" id="image">
+
+        </div>
+        <div class="col-md-8">
+            <div class="info">
+                <h1 class="h1 mb-2" id="title"></h1>
+                <span id="writers">
+
+                </span>
+                <span>
+                    <h3 style="color: red;">Price: <span class="price"></span></h3>
+                </span>
+                <div id='avaiable'>
+                    <i class="fa fa-check-circle mr-1 text-accent text-fa "></i>
+                    <span class="text-accent">Available</span><br>
+                    <button type="button" class="btn btn-danger" id="add-cart"><i class="fa fa-shopping-cart"
+                            aria-hidden="true"></i> ADD TO CART</button>
                 </div>
-            </div>
-            <div class="comment-content">
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Velit omnis animi et iure
-                laudantium vitae, praesentium optio, sapiente distinctio illo?
             </div>
         </div>
-        <div class="comment-element">
-            <div class="comment-box">
-                <div class="comment-head">
-                    <h6 class="comment-name by-author">Agustin Ortiz</h6>
-                    <span>hace 20 minutos</span>
-                </div>
-            </div>
-            <div class="comment-content">
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Velit omnis animi et iure
-                laudantium vitae, praesentium optio, sapiente distinctio illo?
-            </div>
+    </div>
+    <div class="label">
+        <h2>Description</h2>
+        <div class="no-change">
+            <p id="description"></p>
         </div>
-        <div class="comment-element">
-            <div class="comment-box">
-                <div class="comment-head">
-                    <h6 class="comment-name by-author">Agustin Ortiz</h6>
-                    <span>hace 20 minutos</span>
+        <h2>Product Details</h2>
+        <div class="no-change">
+            <div class="row detail"><b>Price:&nbsp;</b> <span id="price-detail"></span></div>
+            <div class="row detail"><b>Publisher:&nbsp;</b> <span id="publisher"></span></div>
+            <div class="row detail"><b>Publish Date:&nbsp;</b> <span id="publish-date"></span></div>
+            <div class="row detail"><b>Pages:&nbsp;</b> <span id="pages"></span></div>
+            <div class="row detail"><b>Type:&nbsp;</b> <span id="type"></span></div>
+            <div class="row detail"><b>Quantity:&nbsp;</b> <span id="quantity"></span></div>
+        </div>
+        <h2>Comments</h2>
+        {% if user.id: %}
+        <form>
+            <textarea type="text" class="input" placeholder="Write a comment" name="content" id="content"></textarea>
+            <button class='primaryContained float-right' type="submit">Add Comment</button>
+        </form>
+        {% endif %}
+        <div style="padding-top: 40px;">
+            <div class="comment-element">
+                <div class="comment-box">
+                    <div class="comment-head">
+                        <h6 class="comment-name by-author">Agustin Ortiz</h6>
+                        <span>hace 20 minutos</span>
+                    </div>
+                </div>
+                <div class="comment-content">
+                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Velit omnis animi et iure
+                    laudantium vitae, praesentium optio, sapiente distinctio illo?
                 </div>
             </div>
-            <div class="comment-content">
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Velit omnis animi et iure
-                laudantium vitae, praesentium optio, sapiente distinctio illo?
+            <div class="comment-element">
+                <div class="comment-box">
+                    <div class="comment-head">
+                        <h6 class="comment-name by-author">Agustin Ortiz</h6>
+                        <span>hace 20 minutos</span>
+                    </div>
+                </div>
+                <div class="comment-content">
+                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Velit omnis animi et iure
+                    laudantium vitae, praesentium optio, sapiente distinctio illo?
+                </div>
+            </div>
+            <div class="comment-element">
+                <div class="comment-box">
+                    <div class="comment-head">
+                        <h6 class="comment-name by-author">Agustin Ortiz</h6>
+                        <span>hace 20 minutos</span>
+                    </div>
+                </div>
+                <div class="comment-content">
+                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Velit omnis animi et iure
+                    laudantium vitae, praesentium optio, sapiente distinctio illo?
+                </div>
             </div>
         </div>
     </div>
