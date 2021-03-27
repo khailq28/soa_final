@@ -20,7 +20,7 @@
     </nav>
 </div>
 <input type="hidden" id="id" value="{{ book.id }}">
-<div id="info">
+<div id="list-book">
     <div class="row">
         <div class="col-md-4" id="image">
 
@@ -60,7 +60,7 @@
         <h2>Comments</h2>
         {% if user.id: %}
         <form id="form-comment">
-            <textarea type="text" class="input" placeholder="Write a comment" name="content"></textarea>
+            <textarea type="text" class="input" placeholder="Write a comment" name="content" id="content"></textarea>
             <input type="hidden" name="book-id" value="{{ book.id }}">
             <button class='primaryContained float-right' type="submit">Add Comment</button>
         </form>
@@ -144,6 +144,7 @@
                 },
                 success: function (aData) {
                     alert(aData.message);
+                    $('#content').val('');
                     loadComment();
                 },
                 error: function () {

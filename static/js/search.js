@@ -9,7 +9,7 @@ $('#form-search').validate({
     },
     submitHandler: function (form) {
         $('#sort').html('');
-        $('#info').html('');
+        $('#list-book').html('');
         $('#products').html('');
         var value = $('#search').val();
         var search_by = $('#search_by').val();

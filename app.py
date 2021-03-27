@@ -44,6 +44,11 @@ def load_user(user_id):
 @app.route('/home')
 def index():
    return render_template('client/home.html', user=current_user)
+
+@app.route('/my-info')
+@login_required
+def my_info():
+   return render_template('client/my-info.html', user=current_user)
    
 @app.route('/signin', methods=['GET', 'POST'])
 def signin():
