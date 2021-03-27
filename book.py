@@ -12,7 +12,7 @@ book = Blueprint('book', __name__, static_folder='static', template_folder='temp
 @book.route('/<string:slug>')
 def index(slug):
    oBook = Books.query.with_entities(Books.title, Books.id).filter(Books.slug == slug).first()
-   return render_template('client/bookDetail.html', slug=slug, book=oBook, user=current_user)
+   return render_template('client/bookDetail.html', book=oBook, user=current_user)
 
 @book.route('/get-all-book', methods=['POST'])
 def getAllBook():

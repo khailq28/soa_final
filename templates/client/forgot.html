@@ -23,50 +23,8 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script src="{{url_for('.static', filename='jquery/jquery.validate.min.js')}}"></script>
-    <script>
-        $("#forgot").validate({
-            onfocusout: false,
-            onkeyup: false,
-            onclick: false,
-            debug: true,
-            success: "valid",
-            rules: {
-                "email": {
-                    required: true,
-                },
-            },
-            submitHandler: function (form) {
-                $.ajax({
-                    url: '/forgot',
-                    dataType: 'json',
-                    data: $('form').serialize(),
-                    method: 'POST',
-                    success: function (aData) {
-                        var sHtml = `
-                        <form class="form" action="/signin">
-                            <h2 class="form_title title">Reset password</h2>
-                            <h3>`+ aData.message + `</h3>
-                            <button class="form__button button" style="cursor: pointer;">Return sign in</button>
-                        </form>
-                        `;
-                        $('#content').html(sHtml);
-                    },
-                    error: function () {
-                        alert('error');
-                    },
-                    error: function () {
-                        alert('error');
-                    },
-                    beforeSend: function () {
-                        $('selector').css('cursor', 'progress');
-                    },
-                    complete: function () {
-                        $('selector').css('cursor', 'pointer');
-                    }
-                });
-            }
-        });
-    </script>
+    <script src="{{url_for('.static', filename='js/reset_password/send-mail.js')}}"></script>
+
 </body>
 
 </html>

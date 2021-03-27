@@ -59,54 +59,20 @@
         </div>
         <h2>Comments</h2>
         {% if user.id: %}
-        <form>
-            <textarea type="text" class="input" placeholder="Write a comment" name="content" id="content"></textarea>
+        <form id="form-comment">
+            <textarea type="text" class="input" placeholder="Write a comment" name="content"></textarea>
+            <input type="hidden" name="book-id" value="{{ book.id }}">
             <button class='primaryContained float-right' type="submit">Add Comment</button>
         </form>
         {% endif %}
-        <div style="padding-top: 40px;">
-            <div class="comment-element">
-                <div class="comment-box">
-                    <div class="comment-head">
-                        <h6 class="comment-name by-author">Agustin Ortiz</h6>
-                        <span>hace 20 minutos</span>
-                    </div>
-                </div>
-                <div class="comment-content">
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Velit omnis animi et iure
-                    laudantium vitae, praesentium optio, sapiente distinctio illo?
-                </div>
-            </div>
-            <div class="comment-element">
-                <div class="comment-box">
-                    <div class="comment-head">
-                        <h6 class="comment-name by-author">Agustin Ortiz</h6>
-                        <span>hace 20 minutos</span>
-                    </div>
-                </div>
-                <div class="comment-content">
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Velit omnis animi et iure
-                    laudantium vitae, praesentium optio, sapiente distinctio illo?
-                </div>
-            </div>
-            <div class="comment-element">
-                <div class="comment-box">
-                    <div class="comment-head">
-                        <h6 class="comment-name by-author">Agustin Ortiz</h6>
-                        <span>hace 20 minutos</span>
-                    </div>
-                </div>
-                <div class="comment-content">
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Velit omnis animi et iure
-                    laudantium vitae, praesentium optio, sapiente distinctio illo?
-                </div>
-            </div>
+        <div style="padding-top: 40px;" id="list-comment">
         </div>
     </div>
 </div>
 {% endblock %}
 {% block script %}
 <script src="{{url_for('.static', filename='js/base.js')}}"></script>
+<script src="{{url_for('.static', filename='js/getCookie.js')}}"></script>
 <script>
     $(document).ready(function () {
         $.ajax({
@@ -150,6 +116,88 @@
                 $('#loading').css('display', 'none');
             }
         });
+        loadComment();
     });
+
+    $("#form-comment").validate({
+        onfocusout: false,
+        onkeyup: false,
+        onclick: false,
+        debug: true,
+        success: "valid",
+        showErrors: function (errorMap, errorList) {
+            // Do nothing here
+        },
+        rules: {
+            "content": {
+                required: true,
+            },
+        },
+        submitHandler: function (form) {
+            $.ajax({
+                url: '/comment',
+                dataType: 'json',
+                data: $('form').serialize(),
+                method: 'POST',
+                headers: {
+                    "Authorization": "Bearer " + getCookie('token'),
+                },
+                success: function (aData) {
+                    alert(aData.message);
+                    loadComment();
+                },
+                error: function () {
+                    alert('error');
+                },
+                beforeSend: function () {
+                    $('#loading').css('display', 'block');
+                },
+                complete: function () {
+                    $('#loading').css('display', 'none');
+                }
+            });
+        }
+    });
+
+    function loadComment() {
+        $.ajax({
+            url: '/get-comment',
+            dataType: 'json',
+            method: 'POST',
+            data: {
+                'id': $('#id').val()
+            },
+            success: function (aData) {
+                if (aData.comments.length > 0) {
+                    var sHtml = ``;
+                    for (i in aData.comments) {
+                        sHtml += `
+                        <div class="comment-element">
+                            <div class="comment-box">
+                                <div class="comment-head">
+                                    <h6 class="comment-name by-author">`+ aData.comments[i].firstname + ` ` + aData.comments[i].lastname + `</h6>
+                                    <span>`+ aData.comments[i].created + `</span>
+                                </div>
+                            </div>
+                            <div class="comment-content">
+                                `+ aData.comments[i].content + `
+                            </div>
+                        </div>
+                        `;
+                    }
+                    $('#list-comment').html(sHtml);
+                }
+            },
+            error: function () {
+                alert('error');
+            },
+            beforeSend: function () {
+                $('#loading').css('display', 'block');
+            },
+            complete: function () {
+                $('#loading').css('display', 'none');
+            }
+        });
+    }
 </script>
 {% endblock %}

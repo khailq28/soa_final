@@ -161,6 +161,47 @@ def change_password():
       message = 'Password is changed successfully'
    )
 
+@app.route('/comment', methods=['POST'])
+@jwt_required()
+def comment():
+   sContent = request.form['content']
+   sBookId = request.form['book-id']
+
+   oUser = Users.query.with_entities(Users.id).\
+            filter(Users.username == str(get_jwt_identity())).first()
+
+   # datetime object containing current date and time
+   now = datetime.now()
+   # dd/mm/YY H:M:S
+   dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
+
+   new_comment = Comments(oUser.id, sBookId, sContent, dDateNow)
+
+   db.session.add(new_comment)
+   db.session.commit()
+
+   return jsonify(
+      message = "Comment successfully!"
+   )
+
+@app.route('/get-comment', methods=['POST'])
+def getComment():
+   sId = request.form['id']
+   aComment = Comments.query.join(Users, Comments.user_id == Users.id).\
+      with_entities(Comments.content, Comments.created, Users.firstname, Users.lastname).\
+         filter(Comments.book_id == sId).all()
    
+   aJsonComment = []
+   for oComment in aComment:
+      aJsonComment.append({
+         'firstname' : oComment.firstname,
+         'lastname' : oComment.lastname,
+         'content' : oComment.content,
+         'created' : oComment.created
+      })
+   return jsonify(
+      comments = aJsonComment
+   )
+
 if __name__ == '__main__':
     app.run()
