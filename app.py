@@ -45,6 +45,10 @@ def load_user(user_id):
 def index():
    return render_template('client/home.html', user=current_user)
 
+@app.route('/my-cart')
+def my_cart():
+   return render_template('client/cart.html')
+
 @app.route('/my-info')
 @login_required
 def my_info():
@@ -245,7 +249,6 @@ def change_info():
    return jsonify(
       message = 'Changed successfully'
    ), 200
-
 
 if __name__ == '__main__':
     app.run()

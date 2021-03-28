@@ -257,3 +257,23 @@ def getBookByAuthor():
         prev_num = aBook.prev_num,
         next_num = aBook.next_num
     ), 200
+
+
+@book.route('/get-detail-book-cart', methods=['POST'])
+def getDetailCart():
+    sId = request.form['id']
+    sCount = request.form['count']
+    oBook = Books.query.filter(Books.id == sId).\
+        with_entities(Books.id, Books.title, Books.image, Books.price, Books.number, Books.slug).first()
+    sTotal = int(sCount) * int(oBook.price)
+    aJsonBook = []
+    return jsonify(
+        id = oBook.id,
+        title = oBook.title,
+        image = oBook.image,
+        price = oBook.price,
+        slug = oBook.slug,
+        number = oBook.number,
+        count = sCount,
+        total = sTotal
+    ), 200
