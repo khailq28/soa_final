@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from init import db
 from flask_login import current_user
 from sqlalchemy import or_
+import json
 
 book = Blueprint('book', __name__, static_folder='static', template_folder='templates')
 
@@ -277,3 +278,22 @@ def getDetailCart():
         count = sCount,
         total = sTotal
     ), 200
+
+@book.route('/get-total-price', methods=['POST'])
+def getTotal():
+    aData = request.form['data']
+    aJsonId = json.loads(aData)
+    total = 0
+    for oData in aJsonId:
+        if int(oData['id']) > 0 and int(oData['count']) > 0:
+            new_book = Books.query.filter(Books.id == oData['id']).\
+                    with_entities(Books.price).first()
+            total = int(total) + int(new_book.price) * int(oData['count'])
+        else:
+            return jsonify(
+                message = 'Error'
+            ), 200
+    return jsonify(
+        total = total
+    ), 200
+

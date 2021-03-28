@@ -1,8 +1,3 @@
-<!--Author: W3layouts
-Author URL: http://w3layouts.com
-License: Creative Commons Attribution 3.0 Unported
-License URL: http://creativecommons.org/licenses/by/3.0/
--->
 <!DOCTYPE HTML>
 <html>
 
@@ -72,7 +67,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                     </form>
                 </div>
                 <div class="dis-total">
-                    <h1>Total $38.97</h1>
+                    <h1 id="total"></h1>
                     <div class="tot-btn">
                         <a class="shop" href="#">Back to Shop</a>
                         <a class="check" href="#">Continue to Checkout</a>
@@ -83,23 +78,6 @@ License URL: http://creativecommons.org/licenses/by/3.0/
         </div>
     </div>
     <script src="{{url_for('.static', filename='js/getCookie.js')}}"></script>
-    <!-- <script>$(document).ready(function (c) {
-            $('.close').on('click', function (c) {
-                $('.cake-top').fadeOut('slow', function (c) {
-                    $('.cake-top').remove();
-                });
-            });
-        });
-    </script>
-
-    <script>$(document).ready(function (c) {
-            $('.close-btm').on('click', function (c) {
-                $('.cake-bottom').fadeOut('slow', function (c) {
-                    $('.cake-bottom').remove();
-                });
-            });
-        });
-    </script> -->
 
     <script>
 
@@ -137,10 +115,10 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                                 </div>
                             </td>
                             <td class="price">
-                                <div style="display: flex;"><h4>$</h4><h4 class="">`+ aData.price + `</h4></div>
+                                <div style="display: flex;"><h4>$</h4><h4 id="price`+ aData.id + `">` + aData.price + `</h4></div>
                             </td>
                             <td class="top-remove">
-                                <div style="display: flex;"><h4>$</h4><h4>`+ aData.total + `</h4></div>
+                                <div style="display: flex;"><h4>$</h4><h4 id="total`+ aData.id + `">` + aData.total + `</h4></div>
                                 <div class="close" id="`+ aData.id + `">
                                     <h5>Remove</h5>
                                 </div>
@@ -150,6 +128,8 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                         `;
                         $('#list').append(sHtml);
 
+
+                        //event
                         $('#' + aData.id).click(function () {
                             $('#element' + aData.id).fadeOut('slow', function () {
                                 $('#element' + aData.id).remove();
@@ -165,12 +145,17 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                                 }
                             }
                             var json_str = JSON.stringify(arr);
+                            loadTotal(json_str);
                             document.cookie = "cart=" + json_str + '; path=/';
                         });
 
                         $('input[name="quantity' + aData.id + '"]').focusout(function () {
                             if ($(this).val() == 0) $(this).val(1);
 
+                            if ($(this).val() > aData.number) {
+                                $(this).val(1);
+                                alert('Not enough quantity');
+                            }
                             //change cookie
                             var json_str = getCookie('cart');
                             var arr = JSON.parse(json_str);
@@ -182,7 +167,10 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                                 }
                             }
                             var json_str = JSON.stringify(arr);
+                            loadTotal(json_str);
                             document.cookie = "cart=" + json_str + '; path=/';
+
+                            $('#total' + aData.id).html(parseInt($(this).val()) * parseInt($('#price' + aData.id).text()));
                         });
                     },
                     error: function () {
@@ -196,8 +184,35 @@ License URL: http://creativecommons.org/licenses/by/3.0/
                     }
                 });
             }
+            loadTotal(JSON.stringify(arr));
         });
 
+        function loadTotal(arr_id) {
+            $.ajax({
+                url: '/book/get-total-price',
+                dataType: 'json',
+                method: 'POST',
+                data: {
+                    'data': arr_id
+                },
+                success: function (aData) {
+                    if (aData.message != null) {
+                        alert(aData.message);
+                    } else {
+                        $('#total').text('Total: $'+aData.total);
+                    }
+                },
+                error: function () {
+                    alert('error');
+                },
+                beforeSend: function () {
+                    $('#loading').css('display', 'block');
+                },
+                complete: function () {
+                    $('#loading').css('display', 'none');
+                }
+            });
+        }
     </script>
 </body>
 
