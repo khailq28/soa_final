@@ -1,4 +1,7 @@
 $(document).ready(function () {
+    var json_str = getCookie('cart');
+    var arr = JSON.parse(json_str);
+    $('#num-product').html(arr.length);
     //load category tabs
     $.ajax({
         url: '/category/get-all-categories',

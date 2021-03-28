@@ -71,8 +71,6 @@
 </div>
 {% endblock %}
 {% block script %}
-<script src="{{url_for('.static', filename='js/base.js')}}"></script>
-<script src="{{url_for('.static', filename='js/getCookie.js')}}"></script>
 <script>
     $(document).ready(function () {
         $.ajax({
@@ -200,5 +198,30 @@
             }
         });
     }
+
+    $('#add-cart').click(function () {
+        if (getCookie('cart') == null) {
+            var arr = [];
+            arr.push({ 'id': $('#id').val(), 'count': 1 });
+        } else {
+            var json_str = getCookie('cart');
+            var arr = JSON.parse(json_str);
+            var bCheck = true;
+            for (i in arr) {
+                if (arr[i].id == $('#id').val()) {
+                    arr[i].count++;
+                    bCheck = false;
+                    break;
+                }
+            }
+            if (bCheck) arr.push({ 'id': $('#id').val(), 'count': 1 });
+        }
+        var json_str = JSON.stringify(arr);
+        document.cookie = "cart=" + json_str + '; path=/';
+        json_str = getCookie('cart');
+        var arr = JSON.parse(json_str);
+        $('#num-product').html(arr.length);
+        alert('Add successful!');
+    });
 </script>
 {% endblock %}

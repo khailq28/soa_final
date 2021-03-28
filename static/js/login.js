@@ -40,12 +40,6 @@ $("#a-form").validate({
         },
     },
     submitHandler: function (form) {
-        if (confirm('Your text here')) {
-            // user clicked on Yes
-        }
-        else {
-            // user clicked on No
-        }
         $.ajax({
             url: '/signup',
             dataType: 'json',
@@ -91,7 +85,9 @@ $("#b-form").validate({
             success: function (aData) {
                 console.log(aData);
                 if (aData.login) {
-                    document.cookie = "token=" + aData.token;
+                    var now = new Date();
+                    now.setTime(now.getTime() + 1 * 3600 * 1000);
+                    document.cookie = "token=" + aData.token + '; expires=' + now.toUTCString();
                     window.location.replace('\home');
                 } else {
                     alert(aData.message);

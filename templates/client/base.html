@@ -54,11 +54,11 @@
                 </li>
                 <li class="nav-item">
                     <a href="#!" class="nav-link navbar-link-2 waves-effect">
-                        <span class="badge badge-pill red">1</span>
+                        <span class="badge badge-pill red" id="num-product"></span>
                         <i class="fas fa-shopping-cart pl-0"></i>
                     </a>
                 </li>
-                
+
                 {% if user.id: %}
                 <li class="nav-item dropdown" style="cursor: pointer;">
                     <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink-333" data-toggle="dropdown"
@@ -77,7 +77,7 @@
                         class="btn btn-outline-info btn-md btn-rounded btn-navbar waves-effect waves-light">Sign in</a>
                 </li>
                 {% endif %}
-                
+
             </ul>
 
         </div>
@@ -119,6 +119,9 @@
         crossorigin="anonymous"></script>
     <script src="{{url_for('.static', filename='js/search.js')}}"></script>
     <script src="{{url_for('.static', filename='js/sign_out.js')}}"></script>
+    <script src="{{url_for('.static', filename='js/getCookie.js')}}"></script>
+    <script src="{{url_for('.static', filename='js/base1.js')}}"></script>
+
 
     <footer class="bg-light text-center text-lg-start ">
         <!-- Copyright -->
