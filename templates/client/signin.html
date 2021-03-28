@@ -8,6 +8,19 @@
     <link rel="stylesheet" href="{{url_for('.static', filename='css/home/form-login.css')}}">
     <link rel="stylesheet" href="{{url_for('.static', filename='css/home/progress.css')}}">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
 </head>
 
 <body>
@@ -23,7 +36,9 @@
                 <input class="form__input" type="password" placeholder="Password" id="password" name="password">
                 <input class="form__input" type="password" placeholder="Confirm Password" id="confirm" name="confirm">
                 <input class="form__input" type="text" placeholder="Address" id="address" name="address">
-                <input class="form__input" type="text" placeholder="Phone" id="phone" name="phone">
+                <input class="form__input" name="phone" id="phone" type="number" placeholder="Phone number" pattern="/^-?\d+\.?\d*$/"
+                    onKeyPress="if (this.value.length == 10) return false;" onkeydown="javascript: return event.keyCode === 8 ||
+                                                    event.keyCode === 46 ? true : !isNaN(Number(event.key))" />
                 <input type="submit" class="form__button button" value="SIGN UP" style="cursor: pointer;">
             </form>
         </div>

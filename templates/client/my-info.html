@@ -7,7 +7,24 @@
 {% block styles %}
 {{super()}}
 <link rel="stylesheet" href="{{url_for('.static', filename='css/home/book-card.css')}}">
+<style>
+    .error {
+        color: red;
+        font-size: 15px;
+    }
 
+    /* Chrome, Safari, Edge, Opera */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Firefox */
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -23,11 +40,21 @@
         <div class="row" style="margin-top: 5px; margin-bottom: 5px;">
             <div class="col-md-6">
                 <label><b>Last Name:</b></label>
-                <input type="text" class="form-control" placeholder="Lastname" name="lastname">
+                <input type="text" class="form-control" placeholder="Lastname" name="lastname" id="lastname">
             </div>
             <div class="col-md-6">
                 <label><b>First Name:</b></label>
-                <input type="text" class="form-control" placeholder="Firstname" name="firstname">
+                <input type="text" class="form-control" placeholder="Firstname" name="firstname" id="firstname">
+            </div>
+        </div>
+        <div class="row" style="margin-top: 5px; margin-bottom: 5px;">
+            <div class="col-md-6">
+                <label><b>UserName:</b></label>
+                <input type="text" class="form-control" id="username" disabled>
+            </div>
+            <div class="col-md-6">
+                <label><b>Money:</b></label>
+                <input type="number" class="form-control" placeholder="Money" name="money" id="money">
             </div>
         </div>
         <div class="row" style="margin-top: 5px; margin-bottom: 5px;">
@@ -45,7 +72,9 @@
         <div class="row" style="margin-top: 5px; margin-bottom: 5px;">
             <div class="col-md-12">
                 <label><b>Phone number:</b></label>
-                <input type="text" class="form-control" placeholder="Phone" id="phone" name="phone">
+                <input class="form-control" name="phone" id="phone" placeholder="Phone number" type="number"
+                    pattern="/^-?\d+\.?\d*$/" onKeyPress="if (this.value.length == 10) return false;" onkeydown="javascript: return event.keyCode === 8 ||
+                                                    event.keyCode === 46 ? true : !isNaN(Number(event.key))" />
             </div>
         </div>
         <div class="row" style="margin-top: 5px; margin-bottom: 5px;">
@@ -53,10 +82,12 @@
                 <input class="btn btn-primary" type="submit" value="UPDATE" style="cursor: pointer; float: right;">
             </div>
         </div>
-        
+
     </form>
 </div>
 {% endblock %}
 {% block script %}
 <script src="{{url_for('.static', filename='js/base.js')}}"></script>
+<script src="{{url_for('.static', filename='js/getCookie.js')}}"></script>
+<script src="{{url_for('.static', filename='js/my-info.js')}}"></script>
 {% endblock %}

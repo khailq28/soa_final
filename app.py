@@ -59,7 +59,7 @@ def signin():
       if user:
          if check_password_hash(user.password, sPassword):
                login_user(user)
-               access_token = create_access_token(identity=sUsername)
+               access_token = create_access_token(identity=sUsername, fresh=True)
                resp = jsonify({
                   'login': True,
                   'token': access_token
@@ -134,7 +134,7 @@ def forgot():
       mail.send(msg)
       return jsonify(
          message = 'Check your email for a link to reset your password. If it doesn’t appear within a few minutes, check your spam folder.'
-      )
+      ), 200
    return render_template('client/forgot.html')
 
 @app.route('/reset-password/<token>')
@@ -157,14 +157,14 @@ def change_password():
    if sPassword != sConfirm:
       return jsonify(
          message = 'validate'
-      )
+      ), 200
    new_user = Users.query.\
                filter(Users.id == id).\
                   update(dict(password = generate_password_hash(sPassword, method='sha256')))
    db.session.commit()
    return jsonify(
       message = 'Password is changed successfully'
-   )
+   ), 200
 
 @app.route('/comment', methods=['POST'])
 @jwt_required()
@@ -187,7 +187,7 @@ def comment():
 
    return jsonify(
       message = "Comment successfully!"
-   )
+   ), 200
 
 @app.route('/get-comment', methods=['POST'])
 def getComment():
@@ -206,7 +206,46 @@ def getComment():
       })
    return jsonify(
       comments = aJsonComment
-   )
+   ), 200
+
+@app.route('/get-info')
+@jwt_required()
+def get_info():
+   new_user = Users.query.\
+      with_entities(Users.firstname, Users.lastname, Users.username, Users.address, Users.phone_number, Users.money, Users.email).\
+         filter(Users.username == str(get_jwt_identity())).first()
+   return jsonify(
+      firstname = new_user.firstname,
+      lastname = new_user.lastname,
+      username = new_user.username,
+      address = new_user.address,
+      phone = new_user.phone_number,
+      money = new_user.money,
+      email = new_user.email
+   ), 200
+
+@app.route('/change-info', methods=['POST'])
+@jwt_required()
+def change_info():
+   sLastname = request.form['lastname']
+   sFirstname = request.form['firstname']
+   sEmail = request.form['email']
+   sAddress = request.form['address']
+   sPhone = request.form['phone']
+   sMoney = request.form['money']
+
+   if sLastname == '' or sFirstname == '' or sEmail == '' or sAddress == '' or sPhone == '' or int(sMoney) < 0:
+      return jsonify(
+         message = 'invalid'
+      ), 200
+   
+   new_user = Users.query.filter(Users.username == str(get_jwt_identity())).\
+      update(dict(firstname=sFirstname, lastname=sLastname, email=sEmail, address=sAddress, phone_number=sPhone, money=sMoney))
+   db.session.commit()
+   return jsonify(
+      message = 'Changed successfully'
+   ), 200
+
 
 if __name__ == '__main__':
     app.run()
