@@ -61,15 +61,15 @@
                 <div class="dis-card">
                     <h2>Discount Code or Voucher</h2>
                     <p>Enter your discount code or voucher to receive a discount on your total order.</p>
-                    <form>
-                        <input type="text" value="">
+                    <form id="form-coupon">
+                        <input type="text" value="" name="code" id="code">
                         <input type="submit" value="Redeem">
                     </form>
                 </div>
                 <div class="dis-total">
                     <h1 id="total"></h1>
                     <div class="tot-btn">
-                        <a class="shop" href="#">Back to Shop</a>
+                        <a class="shop" href="/">Back to Shop</a>
                         <a class="check" href="#">Continue to Checkout</a>
                     </div>
                 </div>
@@ -98,7 +98,7 @@
                         <tr class="cake-top" id="element`+ aData.id + `">
                             <td class="cakes">
                                 <div class="product-img">
-                                    <a href="/book/`+ aData.slug + `"><img src="../static/images/books/` + aData.image + `"  width="600"></a>
+                                    <a href="/book/`+ aData.slug + `"><img src="../static/images/books/` + aData.image + `"  width="150" height="auto"></a>
                                 </div>
                             </td>
                             <td class="cake-text">
@@ -145,7 +145,7 @@
                                 }
                             }
                             var json_str = JSON.stringify(arr);
-                            loadTotal(json_str);
+                            loadTotal(json_str, null);
                             document.cookie = "cart=" + json_str + '; path=/';
                         });
 
@@ -167,7 +167,7 @@
                                 }
                             }
                             var json_str = JSON.stringify(arr);
-                            loadTotal(json_str);
+                            loadTotal(json_str, null);
                             document.cookie = "cart=" + json_str + '; path=/';
 
                             $('#total' + aData.id).html(parseInt($(this).val()) * parseInt($('#price' + aData.id).text()));
@@ -184,22 +184,25 @@
                     }
                 });
             }
-            loadTotal(JSON.stringify(arr));
+            loadTotal(JSON.stringify(arr), null);
         });
 
-        function loadTotal(arr_id) {
+        function loadTotal(arr_id, coupon) {
+            var arr = JSON.parse(arr_id);
+            if (arr.length == 0) location.replace('/');
             $.ajax({
                 url: '/book/get-total-price',
                 dataType: 'json',
                 method: 'POST',
                 data: {
-                    'data': arr_id
+                    'data': arr_id,
+                    'coupon' : coupon
                 },
                 success: function (aData) {
                     if (aData.message != null) {
                         alert(aData.message);
                     } else {
-                        $('#total').text('Total: $'+aData.total);
+                        $('#total').text('Total: $' + aData.total);
                     }
                 },
                 error: function () {
@@ -213,6 +216,41 @@
                 }
             });
         }
+
+        $('#form-coupon').submit(function (e) {
+            e.preventDefault(); // avoid to execute the actual submit of the form.
+
+            var form = $(this);
+            var url = form.attr('action');
+
+            if ($('#code').val() != '') {
+                $.ajax({
+                    url: '/check-coupon',
+                    dataType: 'json',
+                    method: 'POST',
+                    data: form.serialize(),
+                    success: function (aData) {
+                        if (aData.message != null) {
+                            alert(aData.message);
+                        } else {
+                            var json_str = getCookie('cart');
+                            var arr = JSON.parse(json_str);
+                            var json_str = JSON.stringify(arr);
+                            loadTotal(json_str, $('#code').val());
+                        }
+                    },
+                    error: function () {
+                        alert('error');
+                    },
+                    beforeSend: function () {
+                        $('#loading').css('display', 'block');
+                    },
+                    complete: function () {
+                        $('#loading').css('display', 'none');
+                    }
+                });
+            }
+        });
     </script>
 </body>
 

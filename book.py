@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify, abort, flash, redirect
 from slugify import slugify
 from datetime import datetime
-from models import Books, books_writers, Writers, Categories
+from models import Books, books_writers, Writers, Categories, Coupons
 from flask_sqlalchemy import SQLAlchemy
 from init import db
 from flask_login import current_user
@@ -282,6 +282,8 @@ def getDetailCart():
 @book.route('/get-total-price', methods=['POST'])
 def getTotal():
     aData = request.form['data']
+    sCoupon = request.form['coupon']
+
     aJsonId = json.loads(aData)
     total = 0
     for oData in aJsonId:
@@ -293,6 +295,26 @@ def getTotal():
             return jsonify(
                 message = 'Error'
             ), 200
+
+    if sCoupon:
+        new_coupon = Coupons.query.filter(Coupons.code == sCoupon).first()
+        if new_coupon:
+            # datetime object containing current date and time
+            now = datetime.now()
+            # dd/mm/YY H:M:S
+            dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
+
+            dDateNow = datetime.strptime(dDateNow, "%d/%m/%Y %H:%M:%S")
+
+            dStart = datetime.strptime(new_coupon.time_start, "%d/%m/%Y %H:%M:%S")
+            dEnd = datetime.strptime(new_coupon.time_end, "%d/%m/%Y %H:%M:%S")
+
+            a = dDateNow - dStart
+            b = dDateNow - dEnd
+
+            if a.total_seconds() > 0 and b.total_seconds() < 0:
+                total = int(int(total) * float(new_coupon.percent))
+
     return jsonify(
         total = total
     ), 200

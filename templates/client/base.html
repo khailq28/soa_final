@@ -53,7 +53,7 @@
                     </form>
                 </li>
                 <li class="nav-item">
-                    <a href="/my-cart" class="nav-link navbar-link-2 waves-effect">
+                    <a href="javascript:void(0)" class="nav-link navbar-link-2 waves-effect" id="cart">
                         <span class="badge badge-pill red" id="num-product"></span>
                         <i class="fas fa-shopping-cart pl-0"></i>
                     </a>
@@ -121,6 +121,14 @@
     <script src="{{url_for('.static', filename='js/sign_out.js')}}"></script>
     <script src="{{url_for('.static', filename='js/getCookie.js')}}"></script>
     <script src="{{url_for('.static', filename='js/base1.js')}}"></script>
+    <script>
+        $('#cart').click(function () {
+            var json_str = getCookie('cart');
+            var arr = JSON.parse(json_str);
+            if (arr.length == 0) alert('Your cart is empty!');
+            else    location.replace('/my-cart');
+        });
+    </script>
 
 
     <footer class="bg-light text-center text-lg-start ">
