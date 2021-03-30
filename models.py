@@ -26,6 +26,8 @@ class Users(UserMixin, db.Model):
     money = db.Column(db.String(255), nullable=False, default='0')
     created = db.Column(db.String(255), nullable=False)
     modified = db.Column(db.String(255), nullable=False)
+    otp = db.Column(db.String(6), default=0)
+    created_otp = db.Column(db.String(255), default=0)
 
     def __init__(self, username, password, email, firstname, lastname, address, phone_number, created, modified):
         self.username = username
@@ -41,16 +43,15 @@ class Users(UserMixin, db.Model):
 class Orders(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
-    customer_info = db.Column(JSON, nullable=False)
     order_info = db.Column(JSON, nullable=False)
-    payment_info = db.Column(JSON, nullable=False)
-    status = db.Column(db.Integer, nullable=False)
+    payment_info = db.Column(db.String(255), nullable=False)
+    status = db.Column(db.String(255), nullable=False)
     created = db.Column(db.String(255), nullable=False)
     modified = db.Column(db.String(255), nullable=False)
 
-    def __init__(self, user_id, customer_info, order_info, payment_info, status, created, modified):
+    def __init__(self, user_id, order_info, payment_info, status, created, modified):
         self.user_id = user_id
-        self.customer_info = customer_info
+        self.order_info = order_info
         self.payment_info = payment_info
         self.status = status
         self.created = created

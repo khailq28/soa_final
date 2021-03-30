@@ -3,20 +3,11 @@
 
 <head>
     <title>My cart</title>
-    <link rel="stylesheet" href="{{url_for('.static', filename='css/cart/style.css')}}">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css">
+    <link rel="stylesheet" href="{{url_for('.static', filename='css/cart/style1.css')}}">
     <link rel="stylesheet" href="{{url_for('.static', filename='css/cart/font.css')}}">
     <style>
-        /* Chrome, Safari, Edge, Opera */
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
 
-        /* Firefox */
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
     </style>
     <!-- Custom Theme files -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -28,9 +19,12 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script src="{{url_for('.static', filename='jquery/jquery.validate.min.js')}}"></script>
+    <link rel="stylesheet" href="{{url_for('.static', filename='css/home/progress.css')}}">
 </head>
 
 <body>
+    <div id="loading"><i class="fa fa-spinner fa-3x fa-spin"></i>
+    </div>
     <div class="logo">
         <h3>Book Shop</h3>
     </div>
@@ -57,7 +51,11 @@
                     </tbody>
                 </table>
             </div>
-            <div class="vocher">
+            <div id="info">
+            </div>
+            <div id="input-otp">
+            </div>
+            <div class="vocher" style="padding: 10px; border-top: 3px solid #CCCCCC;">
                 <div class="dis-card">
                     <h2>Discount Code or Voucher</h2>
                     <p>Enter your discount code or voucher to receive a discount on your total order.</p>
@@ -70,7 +68,7 @@
                     <h1 id="total"></h1>
                     <div class="tot-btn">
                         <a class="shop" href="/">Back to Shop</a>
-                        <a class="check" href="#">Continue to Checkout</a>
+                        <a class="check" href="javascript:void(0)" id="payment">Continue to Checkout</a>
                     </div>
                 </div>
                 <div class="clear"> </div>
@@ -131,6 +129,7 @@
 
                         //event
                         $('#' + aData.id).click(function () {
+                            $('#code').val('');
                             $('#element' + aData.id).fadeOut('slow', function () {
                                 $('#element' + aData.id).remove();
                             });
@@ -150,6 +149,7 @@
                         });
 
                         $('input[name="quantity' + aData.id + '"]').focusout(function () {
+                            $('#code').val('');
                             if ($(this).val() == 0) $(this).val(1);
 
                             if ($(this).val() > aData.number) {
@@ -185,6 +185,92 @@
                 });
             }
             loadTotal(JSON.stringify(arr), null);
+
+            //check login
+            $.ajax({
+                url: '/check-login',
+                dataType: 'json',
+                method: 'POST',
+                success: function (aData) {
+                    if (aData.login) {
+                        $.ajax({
+                            url: '/get-info',
+                            dataType: 'json',
+                            method: 'GET',
+                            headers: {
+                                "Authorization": "Bearer " + getCookie('token'),
+                            },
+                            success: function (aData) {
+                                var sHtml = `
+                                <div class="row" style="margin-top: 5px; margin-bottom: 5px; display: flex;">
+                                    <div style="width: 30%;">
+                                        <b style="font-weight: bold;">Name:</b>
+                                    </div>
+                                    <div style="width: 70%;">
+                                        <p>`+ aData.firstname + ` ` + aData.lastname + `</p>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 5px; margin-bottom: 5px; display: flex;">
+                                    <div style="width: 30%;">
+                                        <b style="font-weight: bold;">Email:</b>
+                                    </div>
+                                    <div style="width: 70%;">
+                                        <p>`+ aData.email + `</p>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 5px; margin-bottom: 5px; display: flex;">
+                                    <div style="width: 30%;">
+                                        <b style="font-weight: bold;">Address:</b>
+                                    </div>
+                                    <div style="width: 70%;">
+                                        <p>`+ aData.address + `</p>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 5px; margin-bottom: 5px; display: flex;">
+                                    <div style="width: 30%;">
+                                        <b style="font-weight: bold;">Phone number:</b>
+                                    </div>
+                                    <div style="width: 70%;">
+                                        <p>`+ aData.phone + `</p>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 5px; margin-bottom: 5px; display: flex;">
+                                    <div style="width: 30%;">
+                                        <b style="font-weight: bold;">Payment method:</b>
+                                    </div>
+                                    <div style="width: 30%;">
+                                        <select id="payment-method" class="form-control">
+                                            <option value="cash">Cash</option>
+                                            <option value="ibanking">IBanking</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                `;
+                                $('#info').html(sHtml);
+                                fEventSelectMethod();
+                            },
+                            error: function () {
+                                alert('error');
+                            },
+                            beforeSend: function () {
+                                $('#loading').css('display', 'block');
+                            },
+                            complete: function () {
+                                $('#loading').css('display', 'none');
+                            }
+                        });
+                    }
+                },
+                error: function () {
+                    alert('error');
+                },
+                beforeSend: function () {
+                    $('#loading').css('display', 'block');
+                },
+                complete: function () {
+                    $('#loading').css('display', 'none');
+                }
+            });
         });
 
         function loadTotal(arr_id, coupon) {
@@ -196,7 +282,7 @@
                 method: 'POST',
                 data: {
                     'data': arr_id,
-                    'coupon' : coupon
+                    'coupon': coupon
                 },
                 success: function (aData) {
                     if (aData.message != null) {
@@ -225,7 +311,7 @@
 
             if ($('#code').val() != '') {
                 $.ajax({
-                    url: '/check-coupon',
+                    url: '/coupon/check-coupon',
                     dataType: 'json',
                     method: 'POST',
                     data: form.serialize(),
@@ -250,6 +336,136 @@
                     }
                 });
             }
+        });
+
+        function fEventSelectMethod() {
+            $('#payment-method').change(function () {
+                if ($(this).val() == 'ibanking') {
+                    var sHtml = `
+                    <div class="row" style="margin-top: 5px; margin-bottom: 5px; display: flex;">
+                        <div style="width: 30%;">
+                            <b style="font-weight: bold;">OTP:</b>
+                        </div>
+                        <div style="width: 30%;">
+                            <input class="form-control" name="otp" id="otp" type="number" pattern="/^-?\d+\.?\d*$/"
+                                onKeyPress="if (this.value.length == 6) return false;" onkeydown="javascript: return event.keyCode === 8 ||
+                                                        event.keyCode === 46 ? true : !isNaN(Number(event.key))" />
+                        </div>
+                        <div style="width: 30%;">
+                            <button type="button" class="btn btn-warning" id="get-otp">Get OTP</button>
+                        </div>
+                    </div>
+                    `;
+                    $('#input-otp').show('slow', function () {
+                        $('#input-otp').html(sHtml);
+                    });
+                } else {
+                    $('#input-otp').fadeOut('slow', function () {
+                        $('#input-otp').html('');
+                    });
+                }
+
+                fEventGetOTP();
+            });
+        }
+
+        function fEventGetOTP() {
+            $('#get-otp').click(function () {
+                $.ajax({
+                    url: '/order/get_otp',
+                    dataType: 'text',
+                    method: 'POST',
+                    headers: {
+                        "Authorization": "Bearer " + getCookie('token'),
+                    },
+                    success: function (sData) {
+                        alert(sData);
+                    },
+                    error: function () {
+                        console.log('error');
+                    },
+                    beforeSend: function () {
+                        $('#loading').css('display', 'block');
+                    },
+                    complete: function () {
+                        $('#loading').css('display', 'none');
+                    }
+                });
+            });
+        }
+
+        $('#payment').click(function () {
+            //check login
+            $.ajax({
+                url: '/check-login',
+                dataType: 'json',
+                method: 'POST',
+                success: function (aData) {
+                    if (!aData.login) {
+                        window.location.pathname = '/signin';
+                    }
+                },
+                error: function () {
+                    alert('error');
+                },
+                beforeSend: function () {
+                    $('#loading').css('display', 'block');
+                },
+                complete: function () {
+                    $('#loading').css('display', 'none');
+                }
+            });
+
+            var json_str = getCookie('cart');
+            var arr = JSON.parse(json_str);
+            var json_str = JSON.stringify(arr);
+
+            var sMethod = $('#payment-method').val();
+            var sDiscount = $('#code').val();
+            if (sMethod == 'ibanking') {
+                var sOTP = $('#otp').val();
+                if (sOTP == '') {
+                    alert('OTP is empty!');
+                    return;
+                } else {
+                    var data = {
+                        'order': json_str,
+                        'OTP': sOTP,
+                        'payment-method': sMethod,
+                        'discount': sDiscount
+                    };
+                }
+            } else if (sMethod == 'cash')
+                var data = {
+                    'order': json_str,
+                    'payment-method': sMethod,
+                    'discount': sDiscount
+                };
+            else return;
+            //order 
+            $.ajax({
+                url: '/order',
+                dataType: 'json',
+                data: data,
+                method: 'POST',
+                headers: {
+                    "Authorization": "Bearer " + getCookie('token'),
+                },
+                success: function (aData) {
+                    alert(aData.message);
+                    document.cookie = "cart=; expires=Thu, 01 Jan 1970 00:00:00 UTC;"
+                    window.location.pathname = '/';
+                },
+                error: function () {
+                    alert('error');
+                },
+                beforeSend: function () {
+                    $('#loading').css('display', 'block');
+                },
+                complete: function () {
+                    $('#loading').css('display', 'none');
+                }
+            });
         });
     </script>
 </body>

@@ -53,7 +53,7 @@ def my_cart():
 @login_required
 def my_info():
    return render_template('client/my-info.html', user=current_user)
-   
+
 @app.route('/signin', methods=['GET', 'POST'])
 def signin():
    if request.method == 'POST':
@@ -89,9 +89,9 @@ def signup():
    sEmail = request.form['email']
    sAddress = request.form['address']
    sPhone = request.form['phone']
-   if sPassword == sConfirm:
+   if sPassword != sConfirm:
       return jsonify(
-         message = "validate"
+         message = "Invalid"
       ), 200
 
    if sLastname != '' and sFirstname != '' and sUsername != '' and sPassword != '' and sEmail != '' and sAddress != '' and sPhone != '':
@@ -110,7 +110,7 @@ def signup():
          message = "Sign up successfully!"
       ), 200
    return jsonify(
-      message = "validate"
+      message = "Invalidate"
    ), 200
 
 @app.route('/logout', methods=['POST'])
@@ -250,41 +250,13 @@ def change_info():
       message = 'Changed successfully'
    ), 200
 
-@app.route('/check-coupon', methods=['POST'])
-def check_coupon():
-   sCode = request.form['code']
-
-   if sCode == '':
-      return jsonify(
-         message = 'Code does not exist!'
-      ), 200
-
-   new_coupon = Coupons.query.filter(Coupons.code == sCode).first()
-   if new_coupon:
-      # datetime object containing current date and time
-      now = datetime.now()
-      # dd/mm/YY H:M:S
-      dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
-
-      dDateNow = datetime.strptime(dDateNow, "%d/%m/%Y %H:%M:%S")
-
-      dStart = datetime.strptime(new_coupon.time_start, "%d/%m/%Y %H:%M:%S")
-      dEnd = datetime.strptime(new_coupon.time_end, "%d/%m/%Y %H:%M:%S")
-
-      a = dDateNow - dStart
-      b = dDateNow - dEnd
-
-      if a.total_seconds() > 0 and b.total_seconds() < 0:
-         return  jsonify(
-            percent = new_coupon.percent,
-         ), 200
-      else:
-         return  jsonify(
-            message = 'Code has expired!'
-         ), 200
-   return jsonify(
-      message = 'Code does not exist!'
-   ), 200
+@app.route('/check-login', methods=['POST'])
+def check_login():
+   if current_user.is_authenticated:
+      login = True
+   else:
+      login = False
+   return jsonify(login = login), 200
 
 if __name__ == '__main__':
     app.run()

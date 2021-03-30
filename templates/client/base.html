@@ -120,13 +120,14 @@
     <script src="{{url_for('.static', filename='js/search.js')}}"></script>
     <script src="{{url_for('.static', filename='js/sign_out.js')}}"></script>
     <script src="{{url_for('.static', filename='js/getCookie.js')}}"></script>
-    <script src="{{url_for('.static', filename='js/base1.js')}}"></script>
+    <script src="{{url_for('.static', filename='js/base.js')}}"></script>
     <script>
         $('#cart').click(function () {
-            var json_str = getCookie('cart');
-            var arr = JSON.parse(json_str);
-            if (arr.length == 0) alert('Your cart is empty!');
-            else    location.replace('/my-cart');
+            if (getCookie('cart') != undefined) {
+                var arr = JSON.parse(getCookie('cart')||null);
+                if (arr.length == 0) alert('Your cart is empty22!');
+                else    location.replace('/my-cart');
+            } else alert('Your cart is empty!');
         });
     </script>
 
