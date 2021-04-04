@@ -247,7 +247,6 @@
                                 </div>
                                 `;
                                 $('#info').html(sHtml);
-                                fEventSelectMethod();
                             },
                             error: function () {
                                 alert('error');
@@ -338,62 +337,6 @@
             }
         });
 
-        function fEventSelectMethod() {
-            $('#payment-method').change(function () {
-                if ($(this).val() == 'ibanking') {
-                    var sHtml = `
-                    <div class="row" style="margin-top: 5px; margin-bottom: 5px; display: flex;">
-                        <div style="width: 30%;">
-                            <b style="font-weight: bold;">OTP:</b>
-                        </div>
-                        <div style="width: 30%;">
-                            <input class="form-control" name="otp" id="otp" type="number" pattern="/^-?\d+\.?\d*$/"
-                                onKeyPress="if (this.value.length == 6) return false;" onkeydown="javascript: return event.keyCode === 8 ||
-                                                        event.keyCode === 46 ? true : !isNaN(Number(event.key))" />
-                        </div>
-                        <div style="width: 30%;">
-                            <button type="button" class="btn btn-warning" id="get-otp">Get OTP</button>
-                        </div>
-                    </div>
-                    `;
-                    $('#input-otp').show('slow', function () {
-                        $('#input-otp').html(sHtml);
-                    });
-                } else {
-                    $('#input-otp').fadeOut('slow', function () {
-                        $('#input-otp').html('');
-                    });
-                }
-
-                fEventGetOTP();
-            });
-        }
-
-        function fEventGetOTP() {
-            $('#get-otp').click(function () {
-                $.ajax({
-                    url: '/order/get_otp',
-                    dataType: 'text',
-                    method: 'POST',
-                    headers: {
-                        "Authorization": "Bearer " + getCookie('token'),
-                    },
-                    success: function (sData) {
-                        alert(sData);
-                    },
-                    error: function () {
-                        console.log('error');
-                    },
-                    beforeSend: function () {
-                        $('#loading').css('display', 'block');
-                    },
-                    complete: function () {
-                        $('#loading').css('display', 'none');
-                    }
-                });
-            });
-        }
-
         $('#payment').click(function () {
             //check login
             $.ajax({
@@ -422,31 +365,16 @@
 
             var sMethod = $('#payment-method').val();
             var sDiscount = $('#code').val();
-            if (sMethod == 'ibanking') {
-                var sOTP = $('#otp').val();
-                if (sOTP == '') {
-                    alert('OTP is empty!');
-                    return;
-                } else {
-                    var data = {
-                        'order': json_str,
-                        'OTP': sOTP,
-                        'payment-method': sMethod,
-                        'discount': sDiscount
-                    };
-                }
-            } else if (sMethod == 'cash')
-                var data = {
-                    'order': json_str,
-                    'payment-method': sMethod,
-                    'discount': sDiscount
-                };
-            else return;
+            if (sMethod != 'ibanking' && sMethod != 'cash') return;
             //order 
             $.ajax({
                 url: '/order',
                 dataType: 'json',
-                data: data,
+                data: {
+                    'order': json_str,
+                    'payment-method': sMethod,
+                    'discount': sDiscount
+                },
                 method: 'POST',
                 headers: {
                     "Authorization": "Bearer " + getCookie('token'),

@@ -1,7 +1,7 @@
-from flask import Blueprint, render_template, request, jsonify, abort, flash, json
+from flask import Blueprint, render_template, request, jsonify, abort, flash, json, url_for
 from slugify import slugify
 from datetime import datetime
-from models import Orders, Users, Books, Coupons
+from models import *
 from flask_mail import Message
 from flask_sqlalchemy import SQLAlchemy
 from init import db, mail
@@ -16,29 +16,11 @@ from flask_jwt_extended import (
     get_jwt_identity, unset_jwt_cookies
 )
 
+from itsdangerous import Serializer, TimedJSONWebSignatureSerializer, SignatureExpired
+
+s = TimedJSONWebSignatureSerializer('Thisisasecret')
+
 order = Blueprint('order', __name__, static_folder='static', template_folder='templates')
-
-@order.route('/get_otp', methods=['POST'])
-@jwt_required()
-def getOtp():
-    otp = random.randrange(100000, 1000000)
-
-    # datetime object containing current date and time
-    now = datetime.now()
-    # dd/mm/YY H:M:S
-    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-
-    update_user = Users.query.filter(Users.username == get_jwt_identity()).\
-        update(dict(otp=otp, created_otp=dt_string))
-    db.session.commit()
-
-    new_user = Users.query.with_entities(Users.email).filter(Users.username == get_jwt_identity()).first()
-
-    msg = Message('Confirm payment', sender = 'a06204995@gmail.com', recipients = [new_user.email])
-    msg.body = 'OTP (expires after 5 minutes): ' + str(otp)
-    mail.send(msg)
-
-    return 'OTP is sent to your email!', 200
 
 @order.route('/', methods=['POST'])
 @jwt_required()
@@ -57,72 +39,138 @@ def index():
    # dd/mm/YY H:M:S
    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
 
+   new_user = Users.query.\
+      filter(Users.username == get_jwt_identity()).first()
+
    if sMethod == 'ibanking' or sMethod == 'cash':
       if sMethod == 'ibanking':
-         sOTP = request.form['OTP']
-         new_user = Users.query.with_entities(Users.id, Users.otp, Users.created_otp, Users.money).\
-            filter(Users.username == get_jwt_identity()).first()
-         if new_user.otp == sOTP:
-            created_otp = datetime.strptime(new_user.created_otp, "%d/%m/%Y %H:%M:%S")
+         token = s.dumps({
+            'user_id' : new_user.id,
+            'order' : sOrder,
+            'method' : sMethod,
+            'coupon' : sCoupon}).decode('utf-8')
+         # datetime object containing current date and time
+         now = datetime.now()
+         # dd/mm/YY H:M:S
+         dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
+         if Tokens.query.filter(Tokens.user_id == new_user.id, Tokens.action == 'order').first():
+            update_token = Tokens.query.filter(Tokens.user_id == new_user.id, Tokens.action == 'order').\
+               update(dict(code = token, created = dDateNow))
+         else:
+            db_token = Tokens(new_user.id, 'order', token, dDateNow)
+            db.session.add(db_token)
+         db.session.commit()
+         msg = Message('Confirm Order', sender = 'a06204995@gmail.com', recipients = [new_user.email])
 
-            time_now = datetime.strptime(dt_string, "%d/%m/%Y %H:%M:%S")
+         link = url_for('order.confirm_order', token=token, _external=True)
 
-            a = time_now - created_otp
-            
-            if a.total_seconds() >= 300:
-               return jsonify(
-                  message = 'OTP expired'
-               ), 200
-            sStatus = 'Check out'
-
-      new_user = Users.query.\
-            filter(Users.username == get_jwt_identity()).first()
-      total = calculateTotal(sOrder, sCoupon)
-      if total == 'error':
+         msg.body = 'If you don’t use this link within 1 hours, it will expire. To confirm order, visit: {}'.format(link)
+         mail.send(msg)
          return jsonify(
-            message = 'error'
+            message = 'Check your email for a link to confirm order. If it doesn’t appear within a few minutes, check your spam folder.'
          ), 200
+      else:
+         total = calculateTotal(sOrder, sCoupon)
+         percent = ''
+         if sCoupon != '':
+            new_coupon = Coupons.query.with_entities(Coupons.percent).filter(Coupons.code == sCoupon).first()
+            if new_coupon:
+               percent = new_coupon.percent
+         json_data = {
+            'order' : sOrder,
+            'coupon' : {'code': sCoupon, 'percent' : percent},
+            'total' : round(total, 2)
+         }
+         new_order = Orders(new_user.id, json_data, sMethod, sStatus, dt_string, dt_string)
+         db.session.add(new_order)
 
-      if int(new_user.money) < int(total):
+         db.session.commit()
+
+         oOrder = Orders.query.with_entities(Orders.id).\
+               filter(Orders.created == dt_string, Orders.user_id == new_user.id).first()
+
+         msg = Message('Order success', sender = 'a06204995@gmail.com', recipients = [new_user.email])
+         msg.body = 'Code: ' + str(oOrder.id) + \
+                     '\nDate: ' + dt_string + \
+                        '\nPayment method: ' + sMethod
+         mail.send(msg)
+               
          return jsonify(
-            message = 'Your account does not have enough money!'
+            message = 'Order success'
          ), 200
-      
-      new_money = int(new_user.money) - int(total)
-      user_update = Users.query.\
-         filter(Users.id == new_user.id).\
-               update(dict(money = str(new_money), otp = '', created_otp = ''))
-
-      db.session.commit()
-
-      percent = ''
-      if sCoupon != '':
-         new_coupon = Coupons.query.with_entities(Coupons.percent).filter(Coupons.code == sCoupon).first()
-         if new_coupon:
-            percent = new_coupon.percent
-      json_data = {
-         'order' : sOrder,
-         'coupon' : {'code': sCoupon, 'percent' : percent},
-         'total' : round(total, 2)
-      }
-      new_order = Orders(new_user.id, json_data, sMethod, sStatus, dt_string, dt_string)
-      db.session.add(new_order)
-
-      db.session.commit()
-
-      oOrder = Orders.query.with_entities(Orders.id).\
-            filter(Orders.created == dt_string, Orders.user_id == new_user.id).first()
-
-      msg = Message('Order success', sender = 'a06204995@gmail.com', recipients = [new_user.email])
-      msg.body = 'Code: ' + str(oOrder.id) + \
-                  '\nDate: ' + dt_string + \
-                     'Payment method: ' + sMethod
-      mail.send(msg)
-            
-      return jsonify(
-         message = 'Order success'
-      ), 200
    return jsonify(message="Invalid"), 200
+
+@order.route('/confirm-order/<token>')
+def confirm_order(token):
+   try:
+      id = s.loads(token)['user_id']
+      sOrder = s.loads(token)['order']
+      sMethod = s.loads(token)['method']
+      sCoupon = s.loads(token)['coupon']
+
+      sStatus = 'Check out'
+      new_token = Tokens.query.filter(Tokens.user_id == id, Tokens.action == 'order').first()
+      new_user = Users.query.filter(Users.id == id).first()
+      if new_token:
+         # check token
+         if new_token.status == 'finish':   return render_template('client/message.html', message = 'The token is expired!')
+         # datetime object containing current date and time
+         now = datetime.now()
+         # dd/mm/YY H:M:S
+         dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+         dDateNow = datetime.strptime(dt_string, "%d/%m/%Y %H:%M:%S")
+
+         dCreated = datetime.strptime(new_token.created, "%d/%m/%Y %H:%M:%S")
+         time = dDateNow - dCreated
+         if time.total_seconds() > 3600:
+            return render_template('client/message.html', message = 'The token is expired!')
+         
+         # check money
+         total = calculateTotal(sOrder, sCoupon)
+         if total == 'error':
+            return jsonify(
+               message = 'error'
+            ), 200
+
+         if float(new_user.money) < float(total):
+            return render_template('client/message.html', message = 'Your account does not have enough money!')
+         
+         new_money = float(new_user.money) - float(total)
+         user_update = Users.query.\
+            filter(Users.id == new_user.id).\
+                  update(dict(money = str(new_money)))
+         db.session.commit()
+         # insert table order
+         percent = ''
+         if sCoupon != '':
+            new_coupon = Coupons.query.with_entities(Coupons.percent).filter(Coupons.code == sCoupon).first()
+            if new_coupon:
+               percent = new_coupon.percent
+         json_data = {
+            'order' : sOrder,
+            'coupon' : {'code': sCoupon, 'percent' : percent},
+            'total' : round(total, 2)
+         }
+         new_order = Orders(new_user.id, json_data, sMethod, sStatus, dt_string, dt_string)
+         db.session.add(new_order)
+
+         db.session.commit()
+
+         oOrder = Orders.query.with_entities(Orders.id).\
+               filter(Orders.created == dt_string, Orders.user_id == new_user.id).first()
+
+         msg = Message('Order success', sender = 'a06204995@gmail.com', recipients = [new_user.email])
+         msg.body = 'Code: ' + str(oOrder.id) + \
+                     '\nDate: ' + dt_string + \
+                        '\nPayment method: ' + sMethod
+         mail.send(msg)
+         update_token = Tokens.query.filter(Tokens.user_id == id, Tokens.action == 'order').\
+            update(dict(created = dDateNow, status = 'finish'))
+         db.session.commit()
+      else: return render_template('client/message.html', message = 'The token is expired!')
+   except SignatureExpired:
+      return render_template('client/message.html', message = 'The token is expired!')
+   return render_template('client/message.html', message = 'Order success. Please check email!')
 
 def calculateTotal(aData, sCoupon):
    aJsonId = json.loads(aData)

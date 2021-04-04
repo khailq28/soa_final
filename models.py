@@ -155,7 +155,7 @@ class Tokens(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
     action = db.Column(db.String(255), nullable=False)
-    code = db.Column(db.String(255), nullable=False)
+    code = db.Column(db.Text, nullable=False)
     created = db.Column(db.String(255), nullable=False)
     status = db.Column(db.String(255), default='created')
     def __init__(self, user_id, action, code, created):

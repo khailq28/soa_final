@@ -159,7 +159,7 @@ def reset_password(token):
       id = s.loads(token)['user_id']
       new_token = Tokens.query.filter(Tokens.user_id == id, Tokens.action == 'reset-password').first()
       if new_token:
-         if new_token.status == 'finish':   return '<h1>The token is expired!</h1>'
+         if new_token.status == 'finish':   return render_template('client/message.html', message = 'The token is expired!')
          # datetime object containing current date and time
          now = datetime.now()
          # dd/mm/YY H:M:S
@@ -168,9 +168,10 @@ def reset_password(token):
          dCreated = datetime.strptime(new_token.created, "%d/%m/%Y %H:%M:%S")
          time = dDateNow - dCreated
          if time.total_seconds() > 3600:
-            return '<h1>The token is expired!</h1>'
+            return render_template('client/message.html', message = 'The token is expired!')
+      else: return render_template('client/message.html', message = 'The token is expired!')
    except SignatureExpired:
-      return '<h1>The token is expired!</h1>'
+      return render_template('client/message.html', message = 'The token is expired!')
    return render_template('client/reset_password.html', token=token)
 
 @app.route('/change-password', methods=['POST'])
@@ -270,7 +271,7 @@ def change_info():
    sPhone = request.form['phone']
    sMoney = request.form['money']
 
-   if sLastname == '' or sFirstname == '' or sEmail == '' or sAddress == '' or sPhone == '' or float(sMoney) < 0:
+   if sLastname == '' or sFirstname == '' or sEmail == '' or sAddress == '' or sPhone == '' or fl(sMoney) < 0:
       return jsonify(
          message = 'invalid'
       ), 200
