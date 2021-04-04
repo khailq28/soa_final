@@ -20,7 +20,7 @@ from flask_jwt_extended import (
 )
 
 from flask_mail import Message
-from itsdangerous import Serializer, TimedJSONWebSignatureSerializer 
+from itsdangerous import Serializer, TimedJSONWebSignatureSerializer, SignatureExpired
 
 s = TimedJSONWebSignatureSerializer('Thisisasecret')
 
@@ -130,6 +130,18 @@ def forgot():
 
       token = s.dumps({'user_id' : new_user.id}).decode('utf-8')
 
+      # datetime object containing current date and time
+      now = datetime.now()
+      # dd/mm/YY H:M:S
+      dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
+      if Tokens.query.filter(Tokens.user_id == new_user.id, Tokens.action == 'reset-password').first():
+         update_token = Tokens.query.filter(Tokens.user_id == new_user.id, Tokens.action == 'reset-password').\
+            update(dict(code = token, created = dDateNow))
+      else:
+         db_token = Tokens(new_user.id, 'reset-password', token, dDateNow)
+         db.session.add(db_token)
+      db.session.commit()
+
       msg = Message('Confirm Email', sender = 'a06204995@gmail.com', recipients = [sEmail])
 
       link = url_for('reset_password', token=token, _external=True)
@@ -145,6 +157,18 @@ def forgot():
 def reset_password(token):
    try:
       id = s.loads(token)['user_id']
+      new_token = Tokens.query.filter(Tokens.user_id == id, Tokens.action == 'reset-password').first()
+      if new_token:
+         if new_token.status == 'finish':   return '<h1>The token is expired!</h1>'
+         # datetime object containing current date and time
+         now = datetime.now()
+         # dd/mm/YY H:M:S
+         dDateNow = datetime.strptime(now.strftime("%d/%m/%Y %H:%M:%S"), "%d/%m/%Y %H:%M:%S")
+
+         dCreated = datetime.strptime(new_token.created, "%d/%m/%Y %H:%M:%S")
+         time = dDateNow - dCreated
+         if time.total_seconds() > 3600:
+            return '<h1>The token is expired!</h1>'
    except SignatureExpired:
       return '<h1>The token is expired!</h1>'
    return render_template('client/reset_password.html', token=token)
@@ -162,9 +186,17 @@ def change_password():
       return jsonify(
          message = 'validate'
       ), 200
+
+   # datetime object containing current date and time
+   now = datetime.now()
+   # dd/mm/YY H:M:S
+   dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
+   
    new_user = Users.query.\
                filter(Users.id == id).\
-                  update(dict(password = generate_password_hash(sPassword, method='sha256')))
+                  update(dict(password = generate_password_hash(sPassword, method='sha256'), modified = dDateNow))
+   update_token = Tokens.query.filter(Tokens.user_id == id, Tokens.action == 'reset-password').\
+            update(dict(created = dDateNow, status = 'finish'))
    db.session.commit()
    return jsonify(
       message = 'Password is changed successfully'
@@ -238,13 +270,13 @@ def change_info():
    sPhone = request.form['phone']
    sMoney = request.form['money']
 
-   if sLastname == '' or sFirstname == '' or sEmail == '' or sAddress == '' or sPhone == '' or int(sMoney) < 0:
+   if sLastname == '' or sFirstname == '' or sEmail == '' or sAddress == '' or sPhone == '' or float(sMoney) < 0:
       return jsonify(
          message = 'invalid'
       ), 200
    
    new_user = Users.query.filter(Users.username == str(get_jwt_identity())).\
-      update(dict(firstname=sFirstname, lastname=sLastname, email=sEmail, address=sAddress, phone_number=sPhone, money=sMoney))
+      update(dict(firstname=sFirstname, lastname=sLastname, email=sEmail, address=sAddress, phone_number=sPhone, money=str(round(float(sMoney), 2))))
    db.session.commit()
    return jsonify(
       message = 'Changed successfully'

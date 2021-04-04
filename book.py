@@ -266,7 +266,7 @@ def getDetailCart():
     sCount = request.form['count']
     oBook = Books.query.filter(Books.id == sId).\
         with_entities(Books.id, Books.title, Books.image, Books.price, Books.number, Books.slug).first()
-    sTotal = int(sCount) * int(oBook.price)
+    fTotal = float(sCount) * float(oBook.price)
     aJsonBook = []
     return jsonify(
         id = oBook.id,
@@ -276,7 +276,7 @@ def getDetailCart():
         slug = oBook.slug,
         number = oBook.number,
         count = sCount,
-        total = sTotal
+        total = round(fTotal, 2)
     ), 200
 
 @book.route('/get-total-price', methods=['POST'])
@@ -290,7 +290,7 @@ def getTotal():
         if int(oData['id']) > 0 and int(oData['count']) > 0:
             new_book = Books.query.filter(Books.id == oData['id']).\
                     with_entities(Books.price).first()
-            total = int(total) + int(new_book.price) * int(oData['count'])
+            total = float(total) + float(new_book.price) * float(oData['count'])
         else:
             return jsonify(
                 message = 'Error'
@@ -313,9 +313,9 @@ def getTotal():
             b = dDateNow - dEnd
 
             if a.total_seconds() > 0 and b.total_seconds() < 0:
-                total = int(int(total) * float(new_coupon.percent))
+                total = float(float(total) * float(new_coupon.percent))
 
     return jsonify(
-        total = total
+        total = round(total, 2)
     ), 200
 

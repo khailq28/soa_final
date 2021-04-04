@@ -73,31 +73,38 @@ def index():
                return jsonify(
                   message = 'OTP expired'
                ), 200
-            
-            if calculateTotal(sOrder, sCoupon) == 'error':
-               return jsonify(
-                  message = 'error'
-               ), 200
-
-            if int(new_user.money) < int(calculateTotal(sOrder, sCoupon)):
-               return jsonify(
-                  message = 'Your account does not have enough money!'
-               ), 200
-            
-            new_money = int(new_user.money) - int(calculateTotal(sOrder, sCoupon))
-            user_update = Users.query.\
-               filter(Users.id == new_user.id).\
-                     update(dict(money = str(new_money), otp = '', created_otp = ''))
-
-            db.session.commit()
             sStatus = 'Check out'
 
+      new_user = Users.query.\
+            filter(Users.username == get_jwt_identity()).first()
+      total = calculateTotal(sOrder, sCoupon)
+      if total == 'error':
+         return jsonify(
+            message = 'error'
+         ), 200
+
+      if int(new_user.money) < int(total):
+         return jsonify(
+            message = 'Your account does not have enough money!'
+         ), 200
+      
+      new_money = int(new_user.money) - int(total)
+      user_update = Users.query.\
+         filter(Users.id == new_user.id).\
+               update(dict(money = str(new_money), otp = '', created_otp = ''))
+
+      db.session.commit()
+
+      percent = ''
+      if sCoupon != '':
+         new_coupon = Coupons.query.with_entities(Coupons.percent).filter(Coupons.code == sCoupon).first()
+         if new_coupon:
+            percent = new_coupon.percent
       json_data = {
          'order' : sOrder,
-         'coupon' : sCoupon
+         'coupon' : {'code': sCoupon, 'percent' : percent},
+         'total' : round(total, 2)
       }
-      new_user = Users.query.with_entities(Users.id, Users.email).\
-            filter(Users.username == get_jwt_identity()).first()
       new_order = Orders(new_user.id, json_data, sMethod, sStatus, dt_string, dt_string)
       db.session.add(new_order)
 
@@ -124,7 +131,7 @@ def calculateTotal(aData, sCoupon):
       if int(oData['id']) > 0 and int(oData['count']) > 0:
          new_book = Books.query.filter(Books.id == oData['id']).\
                   with_entities(Books.price).first()
-         total = int(total) + int(new_book.price) * int(oData['count'])
+         total = float(total) + float(new_book.price) * float(oData['count'])
       else:
          return 'error'
 
@@ -145,9 +152,9 @@ def calculateTotal(aData, sCoupon):
          b = dDateNow - dEnd
 
          if a.total_seconds() > 0 and b.total_seconds() < 0:
-               total = int(int(total) * float(new_coupon.percent))
+               total = float(float(total) * float(new_coupon.percent))
 
-   return total
+   return round(total,2)
 
    
    
