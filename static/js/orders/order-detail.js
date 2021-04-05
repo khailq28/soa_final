@@ -38,7 +38,7 @@ $(document).ready(function () {
             for (i in list_book) {
                 fGetDataBook(list_book[i].id, list_book[i].count);
             }
-            $('#code').html(aData.order_info.coupon.code);
+            $('#code').val(aData.order_info.coupon.code);
             $('#total').html('Total: $' + aData.order_info.total);
             $('#method').html(aData.method);
             $('#status').html(aData.status);
