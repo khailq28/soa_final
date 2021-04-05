@@ -49,10 +49,20 @@ def index():
 def my_cart():
    return render_template('client/cart.html')
 
+@app.route('/detail/<id>')
+@login_required
+def order_detail(id):
+   return render_template('client/order-detail.html', id = id)
+
 @app.route('/my-info')
 @login_required
 def my_info():
    return render_template('client/my-info.html', user=current_user)
+
+@app.route('/my-orders')
+@login_required
+def my_orders():
+   return render_template('client/list-order.html', user=current_user)
 
 @app.route('/signin', methods=['GET', 'POST'])
 def signin():

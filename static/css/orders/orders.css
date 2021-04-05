@@ -1,0 +1,45 @@
+.element {
+    border-bottom: 1px solid #CCCCCC;
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+.element:hover {
+    box-shadow: 0 3px 6px rgb(0 0 0 / 16%), 0 3px 6px rgb(0 0 0 / 23%);
+}
+
+.element .row #ele-id {
+    width: 30%;
+    padding-left: 15px;
+    border-right: 1px solid #CCCCCC;
+}
+
+.element .row #ele-date {
+    width: 50%;
+    padding: 5px;
+}
+
+.element .row #ele-status {
+    width: 20%;
+    text-align: right;
+    border-left: 1px solid #CCCCCC;
+    color: red;
+    font-size: 150%;
+    padding-right: 15px;
+}
+
+.element .row #ele-total {
+    width: 100%;
+    text-align: right;
+    padding: 20px;
+    font-size: 150%;
+}
+
+.element .row #ele-total #price {
+    font-size: 180%;
+    color: red;
+}
+
+#data {
+    color: seagreen;
+}

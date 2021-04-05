@@ -108,7 +108,7 @@ def confirm_order(token):
       sMethod = s.loads(token)['method']
       sCoupon = s.loads(token)['coupon']
 
-      sStatus = 'Check out'
+      sStatus = 'To pay'
       new_token = Tokens.query.filter(Tokens.user_id == id, Tokens.action == 'order').first()
       new_user = Users.query.filter(Users.id == id).first()
       if new_token:
@@ -203,6 +203,41 @@ def calculateTotal(aData, sCoupon):
                total = float(float(total) * float(new_coupon.percent))
 
    return round(total,2)
+
+@order.route('/get-orders', methods=['POST'])
+@jwt_required()
+def get_orders():
+   new_user = Users.query.with_entities(Users.id).filter(Users.username == get_jwt_identity()).first()
+
+   new_order = Orders.query.filter(Orders.user_id == new_user.id).all()
+
+   aOrder = []
+   for oOrder in new_order:
+      aOrder.append({
+         'id' : oOrder.id,
+         'created' : oOrder.created,
+         'status' : oOrder.status,
+         'total_price' : oOrder.order_info['total']
+      })
+   return jsonify(
+      data = aOrder
+   ), 200
+
+@order.route('/get-detail-order', methods=['POST'])
+@jwt_required()
+def get_detail_orders():
+   iId = request.form['id']
+
+   new_order = Orders.query.filter(Orders.id == iId).first()
+
+   return jsonify(
+      id = new_order.id,
+      created = new_order.created,
+      status = new_order.status,
+      order_info = new_order.order_info,
+      method = new_order.payment_info
+   ), 200
+   
 
    
    

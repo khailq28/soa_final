@@ -1,0 +1,26 @@
+{% extends "client/base.html" %}
+
+{% block title %}
+Orders
+{% endblock %}
+
+{% block styles %}
+{{super()}}
+<link rel="stylesheet" href="{{url_for('.static', filename='css/home/book-card.css')}}">
+<link rel="stylesheet" href="{{url_for('.static', filename='css/orders/orders.css')}}">
+{% endblock %}
+
+{% block content %}
+<div class="row" id="products">
+
+</div>
+<div class="row">
+    <nav id="pagination" style="padding: 20px; cursor: pointer;">
+    </nav>
+</div>
+<div id="list-book">
+</div>
+{% endblock %}
+{% block script %}
+<script src="{{url_for('.static', filename='js/orders/orders.js')}}"></script>
+{% endblock %}
