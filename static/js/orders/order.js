@@ -16,7 +16,7 @@ $.ajax({
                     <div id="ele-status">`+ aData.data[i].status + `</div>
                 </div>
                 <div class="row">
-                    <div id="ele-total">Total price: <span id="price">`+ aData.data[i].total_price + `</span></div>
+                    <div id="ele-total">Total price: <span id="price">$`+ aData.data[i].total_price + `</span></div>
                 </div>
             </div>
             `;

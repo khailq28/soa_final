@@ -104,3 +104,33 @@ function fGetDataBook(id, count) {
         }
     });
 }
+
+$('#cancel').click(function () {
+    var r = confirm("Are you sure to delete it?");
+    if (r == true) {
+        $.ajax({
+            url: '/order/cancel-order',
+            dataType: 'json',
+            data: {
+                'id': $('#id').val()
+            },
+            method: 'DELETE',
+            headers: {
+                "Authorization": "Bearer " + getCookie('token'),
+            },
+            success: function (aData) {
+                alert(aData.message);
+                location.replace('/my-orders');
+            },
+            error: function () {
+                alert('error');
+            },
+            beforeSend: function () {
+                $('#loading').css('display', 'block');
+            },
+            complete: function () {
+                $('#loading').css('display', 'none');
+            }
+        });
+    }
+});

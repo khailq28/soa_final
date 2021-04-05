@@ -237,6 +237,24 @@ def get_detail_orders():
       order_info = new_order.order_info,
       method = new_order.payment_info
    ), 200
+
+@order.route('/cancel-order', methods=['DELETE'])
+@jwt_required()
+def cancel_order():
+   iId = request.form['id']
+   new_user = Users.query.with_entities(Users.id).filter(Users.username == get_jwt_identity()).first()
+
+   new_order = Orders.query.filter(Orders.id == iId, Orders.user_id == new_user.id).first()
+
+   if new_order.status == 'To pay':
+      db.session.delete(new_order)
+      db.session.commit()
+      message = 'Delete successfully!'
+   else:    message = 'You can\'t delete it!'
+   return jsonify(
+      message = message
+   ),200
+
    
 
    
