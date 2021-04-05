@@ -146,7 +146,7 @@ def forgot():
       dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
       if Tokens.query.filter(Tokens.user_id == new_user.id, Tokens.action == 'reset-password').first():
          update_token = Tokens.query.filter(Tokens.user_id == new_user.id, Tokens.action == 'reset-password').\
-            update(dict(code = token, created = dDateNow))
+            update(dict(code = token, created = dDateNow, status  = 'created'))
       else:
          db_token = Tokens(new_user.id, 'reset-password', token, dDateNow)
          db.session.add(db_token)

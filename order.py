@@ -55,7 +55,7 @@ def index():
          dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
          if Tokens.query.filter(Tokens.user_id == new_user.id, Tokens.action == 'order').first():
             update_token = Tokens.query.filter(Tokens.user_id == new_user.id, Tokens.action == 'order').\
-               update(dict(code = token, created = dDateNow))
+               update(dict(code = token, created = dDateNow, status  = 'created'))
          else:
             db_token = Tokens(new_user.id, 'order', token, dDateNow)
             db.session.add(db_token)
@@ -242,7 +242,7 @@ def get_detail_orders():
 @jwt_required()
 def cancel_order():
    iId = request.form['id']
-   new_user = Users.query.with_entities(Users.id).filter(Users.username == get_jwt_identity()).first()
+   new_user = Users.query.with_entities(Users.id, Users.email).filter(Users.username == get_jwt_identity()).first()
 
    new_order = Orders.query.filter(Orders.id == iId, Orders.user_id == new_user.id).first()
 
@@ -250,6 +250,10 @@ def cancel_order():
       db.session.delete(new_order)
       db.session.commit()
       message = 'Delete successfully!'
+
+      msg = Message('Delete successfully!', sender = 'a06204995@gmail.com', recipients = [new_user.email])
+      msg.body = 'Delete successfully!'
+      mail.send(msg)
    else:    message = 'You can\'t delete it!'
    return jsonify(
       message = message
