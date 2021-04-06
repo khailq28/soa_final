@@ -240,7 +240,8 @@ def getDetail():
         pages = oBook.pages,
         number = oBook.number,
         created = oBook.created,
-        modified = oBook.modified
+        modified = oBook.modified,
+        slug_category = oBook.category
     ), 200
 
 @book.route('/get-book-by-author', methods=['POST'])
@@ -370,44 +371,49 @@ def getDataForm():
 @book.route('/add-book', methods=['POST'])
 @jwt_required()
 def addBook():
-    sWriters = request.form['writers']
-    sCategory = request.form['category-name']
-    sTitle = request.form['title']
-    sInfo = request.form['info']
-    iPrice = request.form['price']
-    sPublisher = request.form['publisher']
-    dPublishDate = request.form['publish_date']
-    iPages = request.form['pages']
-    iNumber = request.form['number']
-    
-    file = request.files['image']
-    file.filename = slugify(sTitle) + '.jpg'  #some custom file name that you want
-    
-    filename = secure_filename(file.filename)
+    new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+    if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+        sWriters = request.form['writers']
+        sCategory = request.form['category-name']
+        sTitle = request.form['title']
+        sInfo = request.form['info']
+        iPrice = request.form['price']
+        sPublisher = request.form['publisher']
+        dPublishDate = request.form['publish_date']
+        iPages = request.form['pages']
+        iNumber = request.form['number']
+        
+        file = request.files['image']
+        file.filename = slugify(sTitle) + '.jpg'  #some custom file name that you want
+        
+        filename = secure_filename(file.filename)
 
-    if file and allowed_file(file.filename):
-        #file.save(os.path.join(app.config['static/'], filename))
-        file.save("static/images/books/"+file.filename)
-    # datetime object containing current date and time
-    now = datetime.now()
-    # dd/mm/YY H:M:S
-    dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
+        if file and allowed_file(file.filename):
+            #file.save(os.path.join(app.config['static/'], filename))
+            file.save("static/images/books/"+file.filename)
+        # datetime object containing current date and time
+        now = datetime.now()
+        # dd/mm/YY H:M:S
+        dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
 
-    oBook = Books(sCategory, sTitle, slugify(sTitle), file.filename, sInfo, iPrice, sPublisher, dPublishDate, iPages, iNumber, dDateNow, dDateNow )
+        oBook = Books(sCategory, sTitle, slugify(sTitle), file.filename, sInfo, str(round(float(iPrice), 2)), sPublisher, dPublishDate, iPages, iNumber, dDateNow, dDateNow )
 
-    db.session.add(oBook)
-    db.session.commit()
-
-    aSlugWriter = sWriters.split(',')
-    for sSlug in aSlugWriter:
-        oWriter = Writers.query.with_entities(Writers.id).filter(Writers.slug == sSlug).first()
-        oBook = Books.query.with_entities(Books.id).filter(Books.title == sTitle).first()
-
-        new_books_writers = books_writers(oBook.id, oWriter.id)
-        db.session.add(new_books_writers)
+        db.session.add(oBook)
         db.session.commit()
+
+        aSlugWriter = sWriters.split(',')
+        for sSlug in aSlugWriter:
+            oWriter = Writers.query.with_entities(Writers.id).filter(Writers.slug == sSlug).first()
+            oBook = Books.query.with_entities(Books.id).filter(Books.title == sTitle).first()
+
+            new_books_writers = books_writers(oBook.id, oWriter.id)
+            db.session.add(new_books_writers)
+            db.session.commit()
+        return jsonify(
+            message = 'Add successfully!'
+        ), 200
     return jsonify(
-        message = 'Add successfully!'
+        message = 'You do not have permission to access!'
     ), 200
 
 @book.route('/delete', methods=['DELETE'])
@@ -477,6 +483,90 @@ def search_admin():
             current_page = aBook.page,
             prev_num = aBook.prev_num,
             next_num = aBook.next_num
+        ), 200
+    return jsonify(
+        message = 'You do not have permission to access!'
+    ), 200
+
+@book.route('/edit-book', methods=['POST'])
+@jwt_required()
+def editBook():
+    new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+    if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+        sWriters = request.form['writers']
+        sCategory = request.form['category-name']
+        sInfo = request.form['info']
+        iPrice = request.form['price']
+        sPublisher = request.form['publisher']
+        dPublishDate = request.form['publish_date']
+        iPages = request.form['pages']
+        iNumber = request.form['number']
+        iId = request.form['id']
+
+        # datetime object containing current date and time
+        now = datetime.now()
+        # dd/mm/YY H:M:S
+        dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
+
+        #delete data in table book_writers
+        aBookWriter = books_writers.query.\
+            filter(books_writers.book_id == iId).all()
+
+        for oBookWriter in aBookWriter:
+            db.session.delete(oBookWriter)
+        db.session.commit()
+
+        #edit data in table books
+        update_book = Books.query.\
+            filter(Books.id == iId).\
+                update(dict(category=sCategory, info=sInfo, price=str(round(float(iPrice), 2)), publisher=sPublisher, publish_date=dPublishDate, pages=iPages, number=iNumber, modified=dDateNow))
+        db.session.commit()
+        #add data to table book_writers
+        aSlugWriter = sWriters.split(',')
+        for sSlug in aSlugWriter:
+            oWriter = Writers.query.with_entities(Writers.id).filter(Writers.slug == sSlug).first()
+
+            new_books_writers = books_writers(iId, oWriter.id)
+            db.session.add(new_books_writers)
+            db.session.commit()
+        return jsonify(
+            message = 'Edit successfully!'
+        ), 200
+    return jsonify(
+        message = 'You do not have permission to access!'
+    ), 200
+
+@book.route('/edit-image', methods=['POST'])
+@jwt_required()
+def editBookImage():
+    new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+    if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+        # datetime object containing current date and time
+        now = datetime.now()
+        # dd/mm/YY H:M:S
+        dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
+        
+        # delete image in dict
+        id = request.form['id']
+        oBook = Books.query.filter(Books.id == id).first()
+        os.remove("static/images/books/"+ oBook.image)
+
+        # add new image
+        file = request.files['image']
+        file.filename = oBook.slug+ '' + slugify(dDateNow) + '.jpg'  #some custom file name that you want
+        
+        filename = secure_filename(file.filename)
+
+        if file and allowed_file(file.filename):
+            file.save("static/images/books/"+file.filename)
+
+        update_book = Books.query.\
+            filter(Books.id == id).\
+                update(dict(image=file.filename, modified=dDateNow))
+        db.session.commit()
+        
+        return jsonify(
+            message = 'Edit successfully!'
         ), 200
     return jsonify(
         message = 'You do not have permission to access!'

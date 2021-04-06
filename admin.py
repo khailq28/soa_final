@@ -46,3 +46,11 @@ def group():
     if new_user.group_id != 'admin':
         return redirect(url_for('index'))
     return render_template('admin/group.html')
+
+@admin.route('/user')
+@login_required
+def user():
+    new_user = Users.query.with_entities(Users.group_id).filter(Users.username == current_user.username).first()
+    if new_user.group_id != 'admin':
+        return redirect(url_for('index'))
+    return render_template('admin/user.html')

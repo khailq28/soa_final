@@ -54,7 +54,7 @@
             </div>
             <div class="col-md-6">
                 <label><b>Money:</b></label>
-                <input type="number" class="form-control" placeholder="Money" name="money" id="money">
+                <input class="form-control" type="number" name="money" id="money" step="0.01" />
             </div>
         </div>
         <div class="row" style="margin-top: 5px; margin-bottom: 5px;">
@@ -88,4 +88,9 @@
 {% endblock %}
 {% block script %}
 <script src="{{url_for('.static', filename='js/my-info.js')}}"></script>
+<script>
+    $("#money").blur(function () {
+        this.value = parseFloat(this.value).toFixed(2);
+    });
+</script>
 {% endblock %}

@@ -281,7 +281,7 @@ def change_info():
    sPhone = request.form['phone']
    sMoney = request.form['money']
 
-   if sLastname == '' or sFirstname == '' or sEmail == '' or sAddress == '' or sPhone == '' or fl(sMoney) < 0:
+   if sLastname == '' or sFirstname == '' or sEmail == '' or sAddress == '' or sPhone == '' or float(sMoney) < 0:
       return jsonify(
          message = 'invalid'
       ), 200
@@ -300,6 +300,110 @@ def check_login():
    else:
       login = False
    return jsonify(login = login), 200
+
+@app.route('/get-all-user', methods=['POST'])
+@jwt_required()
+def get_all_user():
+   page_num = request.form['page_num']
+   if page_num == '':
+      abort(404)
+   aUser = Users.query.order_by(Users.id.asc()).paginate(per_page=10, page=int(page_num), error_out=True)
+   aJsonUsers = []
+   for oUser in aUser.items:
+      aJsonUsers.append({
+         'id' : oUser.id,
+         'group' : oUser.group_id,
+         'username' : oUser.username,
+         'email' : oUser.email,
+         'firstname' : oUser.firstname,
+         'lastname' : oUser.lastname,
+         'address' : oUser.address,
+         'phone_number' : oUser.phone_number,
+         'money' : oUser.money,
+         'created' : oUser.created,
+         'modified' : oUser.modified
+      })
+   return jsonify(
+      items = aJsonUsers,
+      pages = aUser.pages,
+      current_page = aUser.page,
+      prev_num = aUser.prev_num,
+      next_num = aUser.next_num
+   )
+
+@app.route('/get-info-by-id', methods=['POST'])
+@jwt_required()
+def get_info_by_id():
+   new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+   if new_user.group_id != 'admin':
+      return jsonify(
+         message = 'You do not have permission to access!'
+      ), 200
+   
+   id = request.form['id']
+   oUser = Users.query.\
+         filter(Users.id == id).first()
+   return jsonify(
+      id = oUser.id,
+      group = oUser.group_id,
+      email = oUser.email,
+      firstname = oUser.firstname,
+      lastname = oUser.lastname,
+      address = oUser.address,
+      phone_number = oUser.phone_number,
+      money = oUser.money
+   ), 200
+
+@app.route('/edit', methods=['POST'])
+@jwt_required()
+def edit():
+   new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+   if new_user.group_id != 'admin':
+      return jsonify(
+         message = 'You do not have permission to access!'
+      ), 200
+
+   id = request.form['id']
+   sGroup = request.form['group']
+   sEmail = request.form['email']
+   sFirstname = request.form['firstname']
+   sLastname = request.form['lastname']
+   sAddress = request.form['address']
+   sPhone = request.form['phone']
+   sMoney = request.form['money']
+
+   # datetime object containing current date and time
+   now = datetime.now()
+   # dd/mm/YY H:M:S
+   dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
+
+   new_user = Users.query.filter(Users.id == id).\
+      update(dict(firstname=sFirstname, modified=dDateNow, lastname=sLastname, group_id=sGroup, email=sEmail, address=sAddress, phone_number=sPhone, money=str(round(float(sMoney), 2))))
+   db.session.commit()
+   return jsonify(
+      message = 'Changed successfully'
+   ), 200
+
+@app.route('/delete', methods=['DELETE'])
+@jwt_required()
+def delete():
+   new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+   if new_user.group_id != 'admin':
+      return jsonify(
+         message = 'You do not have permission to access!'
+      ), 200
+
+   id = request.form['id']
+   oUser = Users.query.filter(Users.id == id).first()
+   if oUser.group_id == 'admin':
+      return jsonify(
+         message = 'Can not delete!'
+      ), 200
+   db.session.delete(oUser)
+   db.session.commit()
+   return jsonify(
+      message = 'Deleted successfully!'
+   ), 200
 
 if __name__ == '__main__':
     app.run()
