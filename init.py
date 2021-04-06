@@ -17,7 +17,7 @@ app.config['MAIL_USERNAME'] = 'a06204995@gmail.com'
 app.config['MAIL_PASSWORD'] = 'Testemail123'
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
 
 app.permanent_session_lifetime = timedelta(hours=1)
 

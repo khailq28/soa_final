@@ -1,12 +1,26 @@
 from flask import Blueprint, render_template, request, jsonify, abort, flash, redirect
 from slugify import slugify
 from datetime import datetime
-from models import Books, books_writers, Writers, Categories, Coupons
+from models import *
 from flask_sqlalchemy import SQLAlchemy
 from init import db
 from flask_login import current_user
 from sqlalchemy import or_
 import json
+from flask_jwt_extended import (
+    JWTManager, create_access_token, create_refresh_token,
+    set_access_cookies, set_refresh_cookies,
+     jwt_required,
+    get_jwt_identity, unset_jwt_cookies
+)
+
+import os
+from werkzeug.utils import secure_filename
+
+ALLOWED_EXTENSIONS = set(['jpg', 'jpeg', 'png'])
+  
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 book = Blueprint('book', __name__, static_folder='static', template_folder='templates')
 
@@ -23,11 +37,9 @@ def getAllBook():
         abort(404)
     if order_by == 'desc':
         aBook =Books.query.order_by(Books.created.desc()).\
-            with_entities(Books.image, Books.title, Books.price, Books.slug, Books.id).\
                 paginate(per_page=6, page=int(page_num), error_out=True)
     elif order_by == 'asc':
         aBook =Books.query.order_by(Books.created.asc()).\
-            with_entities(Books.image, Books.title, Books.price, Books.slug, Books.id).\
                 paginate(per_page=6, page=int(page_num), error_out=True)
     else:
         abort(404)
@@ -46,11 +58,20 @@ def getAllBook():
             })
 
         aJsonBook.append({
+            'id' : oBook.id,
+            'category' : oBook.category,
             'title' : oBook.title,
             'writer' : aJsonWriter,
             'slug' : oBook.slug,
             'image' : oBook.image,
-            'price' : oBook.price
+            'info' : oBook.info,
+            'price' : oBook.price,
+            'publisher' : oBook.publisher,
+            'publish_date' : oBook.publish_date,
+            'pages' : oBook.pages,
+            'number' : oBook.number,
+            'created' : oBook.created,
+            'modified' : oBook.modified
         })
     return jsonify(
         items = aJsonBook,
@@ -319,3 +340,144 @@ def getTotal():
         total = round(total, 2)
     ), 200
 
+@book.route('/get-data-form', methods=['POST'])
+@jwt_required()
+def getDataForm():
+    new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+    if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+        aJsonCategory = []
+        for oCategory in Categories.query.with_entities(Categories.name, Categories.slug).all():
+            aJsonCategory.append({
+                'slug' : oCategory.slug,
+                'name' : oCategory.name
+            })
+
+        aJsonWriter = []
+        for oWriter in Writers.query.with_entities(Writers.name, Writers.slug).all():
+            aJsonWriter.append({
+                'slug' : oWriter.slug,
+                'name' : oWriter.name
+            })
+        return jsonify(
+            category = aJsonCategory,
+            writer = aJsonWriter
+        )
+    
+    return jsonify(
+            message = 'You do not have permission to access!'
+        ), 200
+
+@book.route('/add-book', methods=['POST'])
+@jwt_required()
+def addBook():
+    sWriters = request.form['writers']
+    sCategory = request.form['category-name']
+    sTitle = request.form['title']
+    sInfo = request.form['info']
+    iPrice = request.form['price']
+    sPublisher = request.form['publisher']
+    dPublishDate = request.form['publish_date']
+    iPages = request.form['pages']
+    iNumber = request.form['number']
+    
+    file = request.files['image']
+    file.filename = slugify(sTitle) + '.jpg'  #some custom file name that you want
+    
+    filename = secure_filename(file.filename)
+
+    if file and allowed_file(file.filename):
+        #file.save(os.path.join(app.config['static/'], filename))
+        file.save("static/images/books/"+file.filename)
+    # datetime object containing current date and time
+    now = datetime.now()
+    # dd/mm/YY H:M:S
+    dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
+
+    oBook = Books(sCategory, sTitle, slugify(sTitle), file.filename, sInfo, iPrice, sPublisher, dPublishDate, iPages, iNumber, dDateNow, dDateNow )
+
+    db.session.add(oBook)
+    db.session.commit()
+
+    aSlugWriter = sWriters.split(',')
+    for sSlug in aSlugWriter:
+        oWriter = Writers.query.with_entities(Writers.id).filter(Writers.slug == sSlug).first()
+        oBook = Books.query.with_entities(Books.id).filter(Books.title == sTitle).first()
+
+        new_books_writers = books_writers(oBook.id, oWriter.id)
+        db.session.add(new_books_writers)
+        db.session.commit()
+    return jsonify(
+        message = 'Add successfully!'
+    ), 200
+
+@book.route('/delete', methods=['DELETE'])
+@jwt_required()
+def delete():
+    new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+    if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+        id = request.form['id']
+        oBook = Books.query.filter(Books.id == id).first()
+        aBookWriter = books_writers.query.filter(books_writers.book_id == id).all()
+        for oBookWriter in aBookWriter:
+            db.session.delete(oBookWriter)
+        os.remove("static/images/books/"+ oBook.image)
+        db.session.delete(oBook)
+        db.session.commit()
+        return jsonify(
+            message = 'Deleted successfully!'
+        )
+    
+    return jsonify(
+        message = 'You do not have permission to access!'
+    ), 200
+
+@book.route('/search-admin', methods=['POST'])
+@jwt_required()
+def search_admin():
+    new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+    if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+        page_num = request.form['page_num']
+        value = request.form['value']
+        sSearchValue = "%{}%".format(value)
+        aBook = Books.query.\
+                filter(Books.title.like(sSearchValue)).\
+                    paginate(per_page=6, page=int(page_num), error_out=True)
+        aJsonBook = []
+        for oBook in aBook.items:
+            aWriter = books_writers.query.\
+                join(Writers, books_writers.writer_id == Writers.id).\
+                    with_entities(Writers.name, Writers.slug).filter(books_writers.book_id == oBook.id).all()
+            
+            aJsonWriter = []
+            for oWriter in aWriter:
+                aJsonWriter.append({
+                    'name' : oWriter.name,
+                    'slug' : oWriter.slug
+                })
+
+            aJsonBook.append({
+                'id' : oBook.id,
+                'category' : oBook.category,
+                'title' : oBook.title,
+                'writer' : aJsonWriter,
+                'slug' : oBook.slug,
+                'image' : oBook.image,
+                'info' : oBook.info,
+                'price' : oBook.price,
+                'publisher' : oBook.publisher,
+                'publish_date' : oBook.publish_date,
+                'pages' : oBook.pages,
+                'number' : oBook.number,
+                'created' : oBook.created,
+                'modified' : oBook.modified
+            })
+        return jsonify(
+            items = aJsonBook,
+            pages = aBook.pages,
+            current_page = aBook.page,
+            prev_num = aBook.prev_num,
+            next_num = aBook.next_num
+        ), 200
+    return jsonify(
+        message = 'You do not have permission to access!'
+    ), 200

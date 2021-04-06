@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify, abort
+from flask import Blueprint, render_template, request, jsonify, abort, redirect, url_for
 from slugify import slugify
 from models import *
 from flask_sqlalchemy import SQLAlchemy 
@@ -20,7 +20,7 @@ admin = Blueprint('admin', __name__, static_folder='static', template_folder='te
 def book():
     new_user = Users.query.with_entities(Users.group_id).filter(Users.username == current_user.username).first()
     if new_user.group_id != 'admin':
-        return render_template('client/home.html', user=current_user)
+        return redirect(url_for('index'))
     return render_template('admin/book.html')
 
 @admin.route('/category')
@@ -28,7 +28,7 @@ def book():
 def category():
     new_user = Users.query.with_entities(Users.group_id).filter(Users.username == current_user.username).first()
     if new_user.group_id != 'admin':
-        return render_template('client/home.html', user=current_user)
+        return redirect(url_for('index'))
     return render_template('admin/category.html')
 
 @admin.route('/writer')
@@ -36,7 +36,7 @@ def category():
 def writer():
     new_user = Users.query.with_entities(Users.group_id).filter(Users.username == current_user.username).first()
     if new_user.group_id != 'admin':
-        return render_template('client/home.html', user=current_user)
+        return redirect(url_for('index'))
     return render_template('admin/writer.html')
 
 @admin.route('/group')
@@ -44,5 +44,5 @@ def writer():
 def group():
     new_user = Users.query.with_entities(Users.group_id).filter(Users.username == current_user.username).first()
     if new_user.group_id != 'admin':
-        return render_template('client/home.html', user=current_user)
+        return redirect(url_for('index'))
     return render_template('admin/group.html')

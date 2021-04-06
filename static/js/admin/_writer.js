@@ -193,47 +193,57 @@ function editWriter(id) {
     });
 }
 
-$('#search').click(function () {
-    if ($('#search-name').val() == '') return;
-    $.ajax({
-        url: '/writer/search',
-        method: 'POST',
-        data: {
-            'name': $('#search-name').val()
-        },
-        dataType: 'json',
-        success: function (aData) {
-            var sHtml = ``;
-            for (i in aData.items) {
-                sHtml += `
-<tr>
-<td>`+ aData.items[i].id + `</td>
-<td>`+ aData.items[i].name + `</td>
-<td>`+ aData.items[i].slug + `</td>
-<td>`+ aData.items[i].biography + `</td>
-<td>`+ aData.items[i].created + `</td>
-<td>`+ aData.items[i].modified + `</td>
-<td>
-    <div class="row" style="margin: auto">
-        <i class="far fa-trash-alt btn btn-danger btn-delete" style="margin-bottom: 1%" aria-hidden="true" onclick="deleteWriter('`+ aData.items[i].id + `')"></i>
-        <i class="fas fa-pen btn btn-warning" aria-hidden="true" onclick="editWriter('`+ aData.items[i].id + `')" data-toggle="modal" data-target="#modal"></i>
-    </div>
-</td>
-</tr>
-`;
-            }
-            $('#data').html(sHtml);
-            $('#pagination').html('');
-        },
-        error: function () {
-            location.reload();
-            alert('error');
-        },
-        beforeSend: function () {
-            $('#loading').css('display', 'block');
-        },
-        complete: function () {
-            $('#loading').css('display', 'none');
+$('#form-search').validate({
+    showErrors: function (errorMap, errorList) {
+        // Do nothing here
+    },
+    rules: {
+        "search": {
+            required: true
         }
-    });
+    },
+    submitHandler: function (form) {
+        if ($('#search-name').val() == '') return;
+        $.ajax({
+            url: '/writer/search',
+            method: 'POST',
+            data: {
+                'name': $('#search-name').val()
+            },
+            dataType: 'json',
+            success: function (aData) {
+                var sHtml = ``;
+                for (i in aData.items) {
+                    sHtml += `
+                    <tr>
+                    <td>`+ aData.items[i].id + `</td>
+                    <td>`+ aData.items[i].name + `</td>
+                    <td>`+ aData.items[i].slug + `</td>
+                    <td>`+ aData.items[i].biography + `</td>
+                    <td>`+ aData.items[i].created + `</td>
+                    <td>`+ aData.items[i].modified + `</td>
+                    <td>
+                        <div class="row" style="margin: auto">
+                            <i class="far fa-trash-alt btn btn-danger btn-delete" style="margin-bottom: 1%" aria-hidden="true" onclick="deleteWriter('`+ aData.items[i].id + `')"></i>
+                            <i class="fas fa-pen btn btn-warning" aria-hidden="true" onclick="editWriter('`+ aData.items[i].id + `')" data-toggle="modal" data-target="#modal"></i>
+                        </div>
+                    </td>
+                    </tr>
+                    `;
+                }
+                $('#data').html(sHtml);
+                $('#pagination').html('');
+            },
+            error: function () {
+                location.reload();
+                alert('error');
+            },
+            beforeSend: function () {
+                $('#loading').css('display', 'block');
+            },
+            complete: function () {
+                $('#loading').css('display', 'none');
+            }
+        });
+    }
 });

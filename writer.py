@@ -138,6 +138,7 @@ def delete():
 @writer.route('/search', methods=['POST'])
 def search():
     name = request.form['name']
+    name = "%{}%".format(name)
     aWriter = Writers.query.filter(Writers.name.like(name)).all()
 
     aOutput = []
