@@ -75,6 +75,7 @@ function fGetDataBook(id, count) {
                     <td class="cake-text">
                         <div class="product-text">
                             <a href="/book/`+ aData.slug + `"><h1>` + aData.title + `</h1></a>
+                            <p>In stock: `+ aData.number + `</p>
                         </div>
                     </td>
                     <td class="quantity">
@@ -114,7 +115,7 @@ $('#cancel').click(function () {
             data: {
                 'id': $('#id').val()
             },
-            method: 'DELETE',
+            method: 'POST',
             headers: {
                 "Authorization": "Bearer " + getCookie('token'),
             },

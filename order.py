@@ -227,8 +227,8 @@ def get_orders():
 @jwt_required()
 def get_detail_orders():
    iId = request.form['id']
-
-   new_order = Orders.query.filter(Orders.id == iId).first()
+   new_user = Users.query.with_entities(Users.id).filter(Users.username == get_jwt_identity()).first()
+   new_order = Orders.query.filter(Orders.id == iId, Orders.user_id == new_user.id).first()
 
    return jsonify(
       id = new_order.id,
@@ -238,7 +238,7 @@ def get_detail_orders():
       method = new_order.payment_info
    ), 200
 
-@order.route('/cancel-order', methods=['DELETE'])
+@order.route('/cancel-order', methods=['POST'])
 @jwt_required()
 def cancel_order():
    iId = request.form['id']
@@ -247,19 +247,115 @@ def cancel_order():
    new_order = Orders.query.filter(Orders.id == iId, Orders.user_id == new_user.id).first()
 
    if new_order.status == 'To pay':
-      db.session.delete(new_order)
+      upload_order = Orders.query.filter(Orders.id == iId).update(dict(status='Canceled'))
       db.session.commit()
-      message = 'Delete successfully!'
+      message = 'Canceled successfully!'
 
-      msg = Message('Delete successfully!', sender = 'a06204995@gmail.com', recipients = [new_user.email])
-      msg.body = 'Delete successfully!'
+      msg = Message('Canceled successfully!', sender = 'a06204995@gmail.com', recipients = [new_user.email])
+      msg.body = 'Canceled successfully!'
       mail.send(msg)
    else:    message = 'You can\'t delete it!'
    return jsonify(
       message = message
    ),200
 
-   
+@order.route('/get-all-order', methods=['POST'])
+@jwt_required()
+def get_all_orders():
+   new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+   if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+      page_num = request.form['page_num']
+      if page_num == '':
+         abort(404)
 
+      new_order = Orders.query.order_by(Orders.id.asc()).\
+         paginate(per_page=10, page=int(page_num), error_out=True)
+
+      aOrder = []
+      for oOrder in new_order.items:
+         new_user = Users.query.\
+            with_entities(Users.firstname, Users.lastname, Users.email, Users.address, Users.phone_number).\
+               filter(Users.id == oOrder.user_id).first()
+         aOrder.append({
+            'id' : oOrder.id,
+            'created' : oOrder.created,
+            'status' : oOrder.status,
+            'total_price' : oOrder.order_info['total'],
+            'firstname' : new_user.firstname,
+            'lastname' : new_user.lastname,
+            'email' : new_user.email,
+            'address' : new_user.address,
+            'phone_number' : new_user.phone_number
+         })
+      return jsonify(
+         items = aOrder,
+         pages = new_order.pages,
+         current_page = new_order.page,
+         prev_num = new_order.prev_num,
+         next_num = new_order.next_num
+      ), 200
+   return jsonify(
+        message = 'You do not have permission to access!'
+    ), 200
    
-   
+@order.route('/delete', methods=['DELETE'])
+@jwt_required()
+def delete():
+   new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+   if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+      id = request.form['id']
+      oOrder = Orders.query.filter(Orders.id == id).first()
+      db.session.delete(oOrder)
+      db.session.commit()
+      return jsonify(
+         message = 'Deleted successfully!'
+      ), 200
+   return jsonify(
+        message = 'You do not have permission to access!'
+    ), 200
+
+@order.route('/admin/get-detail-order', methods=['POST'])
+@jwt_required()
+def get_admin_detail_orders():
+   new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+   if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+      iId = request.form['id']
+      new_order = Orders.query.filter(Orders.id == iId).first()
+
+      return jsonify(
+         id = new_order.id,
+         created = new_order.created,
+         status = new_order.status,
+         order_info = new_order.order_info,
+         method = new_order.payment_info
+      ), 200
+   return jsonify(
+      message = 'You do not have permission to access!'
+   ), 200
+
+@order.route('/set-status', methods=['POST'])
+@jwt_required()
+def set_status():
+   new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+   if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+      iId = request.form['id']
+      sStatus = request.form['status']
+      upload_order = Orders.query.filter(Orders.id == iId).update(dict(status=sStatus))
+      db.session.commit()
+
+      if sStatus == 'To ship':
+         new_order = Orders.query.with_entities(Orders.order_info).filter(Orders.id == iId).first()
+         
+         for oOrder in json.loads(new_order.order_info['order']):
+            new_book = Books.query.with_entities(Books.number).filter(Books.id == str(oOrder['id'])).first()
+
+            new_number = int(new_book.number) - int(oOrder['count'])
+            upload_book = Books.query.filter(Books.id == str(oOrder['id'])).update(dict(number=str(new_number)))
+            db.session.commit()
+
+      return jsonify(
+         message = 'Changed successfully!'
+      ), 200
+   return jsonify(
+      message = 'You do not have permission to access!'
+   ), 200

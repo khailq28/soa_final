@@ -32,6 +32,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarText">
             <ul class="navbar-nav mr-auto">
+                {% if admin == True: %}
                 <li class="nav-item" id="book">
                     <a class="nav-link" href="/admin/book">Book</a>
                 </li>
@@ -50,6 +51,15 @@
                 <li class="nav-item" id="group">
                     <a class="nav-link" href="/admin/group">Group</a>
                 </li>
+                {% else: %}
+                <li class="nav-item" id="book">
+                    <a class="nav-link" href="/admin/book">Book</a>
+                </li>
+                <li class="nav-item" id="order">
+                    <a class="nav-link" href="/admin/order">Order</a>
+                </li>
+                {% endif %}
+
             </ul>
             <span class="navbar-text">
                 <strong id="name"></strong>

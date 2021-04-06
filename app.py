@@ -52,7 +52,7 @@ def my_cart():
 @app.route('/detail/<id>')
 @login_required
 def order_detail(id):
-   return render_template('client/order-detail.html', id = id)
+   return render_template('client/order-detail.html', id = id, admin=False)
 
 @app.route('/my-info')
 @login_required
