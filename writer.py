@@ -19,7 +19,7 @@ writer = Blueprint('writer', __name__, static_folder='static', template_folder='
 @writer.route('/<string:slug>')
 def index(slug):
    oWriter = Writers.query.with_entities(Writers.name, Writers.id).filter(Writers.slug == slug).first()
-   return render_template('client/writerDetail.html', slug=slug, writer=oWriter, user=current_user)
+   return render_template('client/writerDetail.html', slug=slug, name=oWriter.name, id=oWriter.id, user=current_user)
 
 @writer.route('/get-random-writer', methods=['POST'])
 def getRandomWriter():

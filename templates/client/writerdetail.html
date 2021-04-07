@@ -1,7 +1,7 @@
 {% extends "client/base.html" %}
 
 {% block title %}
-{{ writer.name }}
+{{ name }}
 {% endblock %}
 
 {% block styles %}
@@ -14,7 +14,7 @@
 {% block content %}
 <div id="list-book">
     <div class="label">
-        <input type="hidden" id="id" value="{{ writer.id }}">
+        <input type="hidden" id="id" value="{{ id }}">
         <h2 id="author"></h2>
         <div class="no-change">
             <p id="description"></p>
