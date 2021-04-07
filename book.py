@@ -104,12 +104,13 @@ def getBookByCategory():
     for oBook in aBook.items:
         aWriter = books_writers.query.\
             join(Writers, books_writers.writer_id == Writers.id).\
-                with_entities(Writers.name).filter(books_writers.book_id == oBook.id).all()
+                with_entities(Writers.name, Writers.slug).filter(books_writers.book_id == oBook.id).all()
         
         aJsonWriter = []
         for oWriter in aWriter:
             aJsonWriter.append({
-                'name' : oWriter.name
+                'name' : oWriter.name,
+                'slug' : oWriter.slug
             })
 
         aJsonBook.append({
