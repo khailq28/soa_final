@@ -92,7 +92,7 @@ def signin():
 @app.route('/signup', methods=['POST'])
 def signup():
    sLastname = request.form['lastname']
-   sFirstname = request.form['firstname']
+   sFirstname = request.form['   ']
    sUsername = request.form['username']
    sPassword = request.form['password']
    sConfirm = request.form['confirm']
