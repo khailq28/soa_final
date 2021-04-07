@@ -29,6 +29,14 @@ def index():
    sMethod = request.form['payment-method']
    sCoupon = request.form['discount']
 
+   for oOrder in json.loads(sOrder):
+      new_book = Books.query.with_entities(Books.number, Books.title).\
+         filter(Books.id == str(oOrder['id'])).first()
+      if int(new_book.number) < int(oOrder['count']):
+         return jsonify(
+            message = new_book.title + ' is not enough!'
+         ), 200
+
    sStatus = 'To pay'
 
    if sOrder == '' or sMethod == '':
