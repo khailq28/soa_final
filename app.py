@@ -137,29 +137,32 @@ def forgot():
    if request.method == 'POST':
       sEmail = request.form['email']
       new_user = Users.query.with_entities(Users.id).filter(Users.email == sEmail).first()
+      if new_user:
+         token = s.dumps({'user_id' : new_user.id}).decode('utf-8')
 
-      token = s.dumps({'user_id' : new_user.id}).decode('utf-8')
+         # datetime object containing current date and time
+         now = datetime.now()
+         # dd/mm/YY H:M:S
+         dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
+         if Tokens.query.filter(Tokens.user_id == new_user.id, Tokens.action == 'reset-password').first():
+            update_token = Tokens.query.filter(Tokens.user_id == new_user.id, Tokens.action == 'reset-password').\
+               update(dict(code = token, created = dDateNow, status  = 'created'))
+         else:
+            db_token = Tokens(new_user.id, 'reset-password', token, dDateNow)
+            db.session.add(db_token)
+         db.session.commit()
 
-      # datetime object containing current date and time
-      now = datetime.now()
-      # dd/mm/YY H:M:S
-      dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
-      if Tokens.query.filter(Tokens.user_id == new_user.id, Tokens.action == 'reset-password').first():
-         update_token = Tokens.query.filter(Tokens.user_id == new_user.id, Tokens.action == 'reset-password').\
-            update(dict(code = token, created = dDateNow, status  = 'created'))
-      else:
-         db_token = Tokens(new_user.id, 'reset-password', token, dDateNow)
-         db.session.add(db_token)
-      db.session.commit()
+         msg = Message('Confirm Email', sender = 'a06204995@gmail.com', recipients = [sEmail])
 
-      msg = Message('Confirm Email', sender = 'a06204995@gmail.com', recipients = [sEmail])
+         link = url_for('reset_password', token=token, _external=True)
 
-      link = url_for('reset_password', token=token, _external=True)
-
-      msg.body = 'If you don’t use this link within 1 hours, it will expire. To get a new password reset link, visit: {}'.format(link)
-      mail.send(msg)
+         msg.body = 'If you don’t use this link within 1 hours, it will expire. To get a new password reset link, visit: {}'.format(link)
+         mail.send(msg)
+         return jsonify(
+            message = 'Check your email for a link to reset your password. If it doesn’t appear within a few minutes, check your spam folder.'
+         ), 200
       return jsonify(
-         message = 'Check your email for a link to reset your password. If it doesn’t appear within a few minutes, check your spam folder.'
+         message = 'Email is not registered'
       ), 200
    return render_template('client/forgot.html')
 
