@@ -12,11 +12,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://rtxrqeipmfryhe:cf8aa0136a3ee
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 app.config['MAIL_SERVER']='smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
+app.config['MAIL_PORT'] = 465
 app.config['MAIL_USERNAME'] = 'a06204995@gmail.com'
 app.config['MAIL_PASSWORD'] = 'Testemail123'
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
 
 app.permanent_session_lifetime = timedelta(hours=1)
