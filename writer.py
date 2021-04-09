@@ -49,30 +49,37 @@ def getDetailWriter():
     ), 200
 
 @writer.route('/get-data-writer', methods=['POST'])
+@jwt_required()
 def getWriters():
-    page_num = request.form['page_num']
-    if page_num == '':
-        abort(404)
-    aWriter = Writers.query.order_by(Writers.id.asc()).paginate(per_page=4, page=int(page_num), error_out=True)
-    aJsonWriter = []
-    for oWriter in aWriter.items:
-        aJsonWriter.append({
-            'id' : oWriter.id,
-            'name' : oWriter.name,
-            'slug' : oWriter.slug,
-            'biography' : oWriter.biography,
-            'created' : oWriter.created,
-            'modified' : oWriter.modified
-        })
+    new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+    if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+        page_num = request.form['page_num']
+        if page_num == '':
+            abort(404)
+        aWriter = Writers.query.order_by(Writers.id.asc()).paginate(per_page=4, page=int(page_num), error_out=True)
+        aJsonWriter = []
+        for oWriter in aWriter.items:
+            aJsonWriter.append({
+                'id' : oWriter.id,
+                'name' : oWriter.name,
+                'slug' : oWriter.slug,
+                'biography' : oWriter.biography,
+                'created' : oWriter.created,
+                'modified' : oWriter.modified
+            })
+        return jsonify(
+            items = aJsonWriter,
+            pages = aWriter.pages,
+            current_page = aWriter.page,
+            prev_num = aWriter.prev_num,
+            next_num = aWriter.next_num
+        )
     return jsonify(
-        items = aJsonWriter,
-        pages = aWriter.pages,
-        current_page = aWriter.page,
-        prev_num = aWriter.prev_num,
-        next_num = aWriter.next_num
-    )
+        message = 'You do not have permission to access!'
+    ), 200
 
 @writer.route('/add-writer', methods=['POST'])
+@jwt_required()
 def addWriter():
     new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
     if new_user.group_id == 'admin' or new_user.group_id == 'seller':
