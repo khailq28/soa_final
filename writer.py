@@ -153,25 +153,31 @@ def delete():
     ), 200
 
 @writer.route('/search', methods=['POST'])
+@jwt_required()
 def search():
     new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
     if new_user.group_id == 'admin' or new_user.group_id == 'seller':
-        name = request.form['name']
-        name = "%{}%".format(name)
-        aWriter = Writers.query.filter(Writers.name.like(name)).all()
+        new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+        if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+            name = request.form['name']
+            name = "%{}%".format(name)
+            aWriter = Writers.query.filter(Writers.name.like(name)).all()
 
-        aOutput = []
-        for oWriter in aWriter:
-            aOutput.append({
-                'id' : oWriter.id,
-                'name' : oWriter.name,
-                'slug' : oWriter.slug,
-                'biography' : oWriter.biography,
-                'created' : oWriter.created,
-                'modified' : oWriter.modified
-            })
+            aOutput = []
+            for oWriter in aWriter:
+                aOutput.append({
+                    'id' : oWriter.id,
+                    'name' : oWriter.name,
+                    'slug' : oWriter.slug,
+                    'biography' : oWriter.biography,
+                    'created' : oWriter.created,
+                    'modified' : oWriter.modified
+                })
+            return jsonify(
+                items = aOutput
+            ), 200
         return jsonify(
-            items = aOutput
+            message = 'You do not have permission to access!'
         ), 200
     return jsonify(
         message = 'You do not have permission to access!'
