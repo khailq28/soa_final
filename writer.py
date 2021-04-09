@@ -136,11 +136,6 @@ def edit():
 def delete():
     new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
     if new_user.group_id == 'admin' or new_user.group_id == 'seller':
-        new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
-        if new_user.group_id != 'admin':
-            return jsonify(
-                message = 'You do not have permission to access!'
-            ), 200
         id = request.form['id']
         oWriter = Writers.query.filter(Writers.id == id).first()
         db.session.delete(oWriter)
