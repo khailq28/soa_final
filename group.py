@@ -59,7 +59,7 @@ def addGroup():
     db.session.add(oGroup)
     db.session.commit()
     return jsonify( 
-        message = 'Writer added successfully!'
+        message = 'Group added successfully!'
     ), 200
 
 @group.route('/delete', methods=['DELETE'])
