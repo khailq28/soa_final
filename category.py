@@ -37,12 +37,8 @@ def getAllCategory():
 @category.route('/add-category', methods=['POST'])
 @jwt_required()
 def addCategory():
-   if request.method == 'POST':
-      new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
-      if new_user.group_id != 'admin':
-         return jsonify(
-            message = 'You do not have permission to access!'
-         ), 200
+   new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+   if new_user.group_id == 'admin' or new_user.group_id == 'seller':
       sName = request.form['name']
       sSlug = slugify(sName)
 
@@ -60,20 +56,23 @@ def addCategory():
       return jsonify(
          message = 'Category added successfully!'
       ), 200
+   return jsonify(
+        message = 'You do not have permission to access!'
+    ), 200
 
 @category.route('/delete', methods=['DELETE'])
 @jwt_required()
 def delete():
    new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
-   if new_user.group_id != 'admin':
+   if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+      name = request.form['name']
+      oCategory = Categories.query.filter(Categories.name == name).first()
+      db.session.delete(oCategory)
+      db.session.commit()
       return jsonify(
-         message = 'You do not have permission to access!'
+         message = 'Deleted successfully!'
       ), 200
-   name = request.form['name']
-   oCategory = Categories.query.filter(Categories.name == name).first()
-   db.session.delete(oCategory)
-   db.session.commit()
    return jsonify(
-      message = 'Deleted successfully!'
+      message = 'You do not have permission to access!'
    ), 200
 

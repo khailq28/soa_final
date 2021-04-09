@@ -74,84 +74,99 @@ def getWriters():
 
 @writer.route('/add-writer', methods=['POST'])
 def addWriter():
-    sName = request.form['name']
-    sBiography = request.form['biography']
-    sSlug = slugify(sName)
+    new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+    if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+        sName = request.form['name']
+        sBiography = request.form['biography']
+        sSlug = slugify(sName)
 
-    # datetime object containing current date and time
-    now = datetime.now()
-    # dd/mm/YY H:M:S
-    dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
-    #create new writer
-    oWriter = Writers(sName, sSlug, sBiography, dDateNow, dDateNow)
+        # datetime object containing current date and time
+        now = datetime.now()
+        # dd/mm/YY H:M:S
+        dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
+        #create new writer
+        oWriter = Writers(sName, sSlug, sBiography, dDateNow, dDateNow)
 
-    #insert into table
-    db.session.add(oWriter)
-    db.session.commit()
+        #insert into table
+        db.session.add(oWriter)
+        db.session.commit()
 
+        return jsonify(
+            message = 'Writer added successfully!'
+        ), 200
     return jsonify(
-        message = 'Writer added successfully!'
+        message = 'You do not have permission to access!'
     ), 200
 
 @writer.route('/edit', methods=['POST'])
 @jwt_required()
 def edit():
     new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
-    if new_user.group_id != 'admin':
+    if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+
+        sId = request.form['id']
+        sName = request.form['name']
+        sBiography = request.form['biography']
+
+        # datetime object containing current date and time
+        now = datetime.now()
+        # dd/mm/YY H:M:S
+        dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
+
+        oWriter = Writers.query.filter(Writers.id == sId).\
+            update(dict(name = sName, slug = slugify(sName), biography = sBiography, modified = dDateNow))
+
+        db.session.commit()
         return jsonify(
-            message = 'You do not have permission to access!'
+            message = 'Updated successfully!'
         ), 200
-
-    sId = request.form['id']
-    sName = request.form['name']
-    sBiography = request.form['biography']
-
-    # datetime object containing current date and time
-    now = datetime.now()
-    # dd/mm/YY H:M:S
-    dDateNow = now.strftime("%d/%m/%Y %H:%M:%S")
-
-    oWriter = Writers.query.filter(Writers.id == sId).\
-        update(dict(name = sName, slug = slugify(sName), biography = sBiography, modified = dDateNow))
-
-    db.session.commit()
     return jsonify(
-        message = 'Updated successfully!'
+        message = 'You do not have permission to access!'
     ), 200
 
 @writer.route('/delete', methods=['DELETE'])
 @jwt_required()
 def delete():
     new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
-    if new_user.group_id != 'admin':
+    if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+        new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+        if new_user.group_id != 'admin':
+            return jsonify(
+                message = 'You do not have permission to access!'
+            ), 200
+        id = request.form['id']
+        oWriter = Writers.query.filter(Writers.id == id).first()
+        db.session.delete(oWriter)
+        db.session.commit()
         return jsonify(
-            message = 'You do not have permission to access!'
+            message = 'Deleted successfully!'
         ), 200
-    id = request.form['id']
-    oWriter = Writers.query.filter(Writers.id == id).first()
-    db.session.delete(oWriter)
-    db.session.commit()
     return jsonify(
-        message = 'Deleted successfully!'
+        message = 'You do not have permission to access!'
     ), 200
 
 @writer.route('/search', methods=['POST'])
 def search():
-    name = request.form['name']
-    name = "%{}%".format(name)
-    aWriter = Writers.query.filter(Writers.name.like(name)).all()
+    new_user = Users.query.with_entities(Users.group_id).filter(Users.username == get_jwt_identity()).first()
+    if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+        name = request.form['name']
+        name = "%{}%".format(name)
+        aWriter = Writers.query.filter(Writers.name.like(name)).all()
 
-    aOutput = []
-    for oWriter in aWriter:
-        aOutput.append({
-            'id' : oWriter.id,
-            'name' : oWriter.name,
-            'slug' : oWriter.slug,
-            'biography' : oWriter.biography,
-            'created' : oWriter.created,
-            'modified' : oWriter.modified
-        })
+        aOutput = []
+        for oWriter in aWriter:
+            aOutput.append({
+                'id' : oWriter.id,
+                'name' : oWriter.name,
+                'slug' : oWriter.slug,
+                'biography' : oWriter.biography,
+                'created' : oWriter.created,
+                'modified' : oWriter.modified
+            })
+        return jsonify(
+            items = aOutput
+        ), 200
     return jsonify(
-        items = aOutput
+        message = 'You do not have permission to access!'
     ), 200
 

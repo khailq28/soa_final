@@ -29,17 +29,21 @@ def book():
 @login_required
 def category():
     new_user = Users.query.with_entities(Users.group_id).filter(Users.username == current_user.username).first()
-    if new_user.group_id != 'admin':
-        return redirect(url_for('index'))
-    return render_template('admin/category.html', admin = True)
+    if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+        admin = True
+        if new_user.group_id == 'seller':   admin = False
+        return render_template('admin/category.html', admin = admin)
+    return redirect(url_for('index'))
 
 @admin.route('/writer')
 @login_required
 def writer():
     new_user = Users.query.with_entities(Users.group_id).filter(Users.username == current_user.username).first()
-    if new_user.group_id != 'admin':
-        return redirect(url_for('index'))
-    return render_template('admin/writer.html', admin = True)
+    if new_user.group_id == 'admin' or new_user.group_id == 'seller':
+        admin = True
+        if new_user.group_id == 'seller':   admin = False
+        return render_template('admin/writer.html', admin = admin)
+    return redirect(url_for('index'))
 
 @admin.route('/group')
 @login_required
