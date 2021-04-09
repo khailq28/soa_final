@@ -63,6 +63,9 @@ function change(page) {
         data: {
             'page_num': page
         },
+        headers: {
+            "Authorization": "Bearer " + getCookie('token'),
+        },
         method: 'POST',
         dataType: 'json',
         success: function (aData) {
