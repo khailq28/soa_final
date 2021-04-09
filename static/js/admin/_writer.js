@@ -5,6 +5,9 @@ $(document).ready(function () {
         data: {
             'page_num': 1
         },
+        headers: {
+            "Authorization": "Bearer " + getCookie('token'),
+        },
         method: 'POST',
         dataType: 'json',
         success: function (aData) {
