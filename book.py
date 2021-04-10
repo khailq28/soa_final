@@ -336,7 +336,7 @@ def getTotal():
             b = dDateNow - dEnd
 
             if a.total_seconds() > 0 and b.total_seconds() < 0:
-                total = float(float(total) * float(new_coupon.percent))
+                total -= float(float(total) * float(new_coupon.percent))
 
     return jsonify(
         total = round(total, 2)
