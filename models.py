@@ -62,16 +62,14 @@ class Coupons(db.Model):
     time_start = db.Column(db.String(255), nullable=False)
     time_end = db.Column(db.String(255), nullable=False)
     created = db.Column(db.String(255), nullable=False)
-    modified = db.Column(db.String(255), nullable=False)
 
-    def __init__(self, code, percent, description, time_start, time_end, created, modified):
+    def __init__(self, code, percent, description, time_start, time_end, created):
         self.code = code
         self.percent = percent
         self.description = description
         self.time_start = time_start
         self.time_end = time_end
         self.created = created
-        self.modified = modified
 
 class Categories(db.Model):
     name = db.Column(db.String(100), primary_key=True)

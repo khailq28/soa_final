@@ -1,7 +1,10 @@
+$('#percent').focusout(function() {
+    if ($(this).val() > 100)    $(this).val('');
+});
 $(document).ready(function () {
-    $('#group').addClass('active');
+    $('#coupon').addClass('active');
     $.ajax({
-        url: '/group/get-all-group',
+        url: '/coupon/get-all-coupon',
         method: 'POST',
         dataType: 'json',
         headers: {
@@ -29,7 +32,7 @@ $('#form-add').submit(function (e) {
     var form = $(this);
 
     $.ajax({
-        url: '/group/add-group',
+        url: '/coupon/add-coupon',
         data: form.serialize(),
         method: 'POST',
         dataType: 'json',
@@ -42,7 +45,7 @@ $('#form-add').submit(function (e) {
         },
         error: function () {
             location.reload();
-            alert('This writer already exists!');
+            alert('This coupon already exists!');
         },
         beforeSend: function () {
             $('#loading').css('display', 'block');
@@ -58,13 +61,16 @@ function loadData(aData) {
     for (i in aData.items) {
         sHtml += `
 <tr>
-<td>`+ aData.items[i].name + `</td>
+<td>`+ aData.items[i].code + `</td>
+<td>`+ aData.items[i].percent * 100 + `%</td>
 <td>`+ aData.items[i].description + `</td>
+<td>`+ aData.items[i].time_start + `</td>
+<td>`+ aData.items[i].time_end + `</td>
 <td>`+ aData.items[i].created + `</td>
 <td>
-    <div class="row" style="margin: auto">
-        <i class="fa fa-trash btn btn-danger btn-delete" style="margin-bottom: 1%" aria-hidden="true" onclick="deleteWriter('`+ aData.items[i].name + `')"></i>
-    </div>
+<div class="row" style="margin: auto">
+    <i class="fa fa-trash btn btn-danger btn-delete" style="margin-bottom: 1%" aria-hidden="true" onclick="deleteWriter('`+ aData.items[i].code + `')"></i>
+</div>
 </td>
 </tr>
 `;
@@ -72,18 +78,18 @@ function loadData(aData) {
     $('#data').html(sHtml);
 }
 
-function deleteWriter(name) {
+function deleteWriter(code) {
     var r = confirm("Are you sure you want to delete it?");
     if (r == true) {
         $.ajax({
-            url: '/group/delete',
+            url: '/coupon/delete',
             method: 'DELETE',
             dataType: 'json',
             headers: {
                 "Authorization": "Bearer " + getCookie('token'),
             },
             data: {
-                'name' : name
+                'code': code
             },
             success: function (aData) {
                 alert(aData.message);
