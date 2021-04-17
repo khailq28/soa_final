@@ -95,7 +95,7 @@
                             loadTotal(json_str, null);
                             document.cookie = "cart=" + json_str + '; path=/';
 
-                            $('#total' + aData.id).html(parseInt($(this).val()) * parseInt($('#price' + aData.id).text()));
+                            $('#total' + aData.id).html(parseFloat($(this).val()) * parseFloat($('#price' + aData.id).text()));
                         });
                     },
                     error: function () {
