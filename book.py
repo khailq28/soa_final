@@ -91,11 +91,11 @@ def getBookByCategory():
     if order_by == 'desc':
         aBook =Books.query.filter(Books.category == category).\
         order_by(Books.created.desc()).\
-            paginate(per_page=8, page=int(page_num), error_out=True)
+            paginate(per_page=6, page=int(page_num), error_out=True)
     elif order_by == 'asc':
         aBook =Books.query.filter(Books.category == category).\
         order_by(Books.created.asc()).\
-            paginate(per_page=8, page=int(page_num), error_out=True)
+            paginate(per_page=6, page=int(page_num), error_out=True)
     else:
         abort(404)
 
